@@ -3,40 +3,29 @@ import random
 from typing import List
 
 from socketio import AsyncServer
+from pipeline.db import AgentStateManager
 from baml_client.async_client import b
 from baml_client.types import Context, FinalAnswer
 from notorious_r_a_g.rag_simple import retrieve
+from models import Message
 
 
-async def formulate_response(sio: AsyncServer, question: str) -> str:
-    await sio.emit(
-        "message", {"state": "agent: formulating response", "icon": "pencil"}
-    )
+async def formulate_response(sio: AgentStateManager, question: str) -> str:
+    sio.add_action(type="formulate_response", content="Formulating response")
 
     context: List[Context] = []
 
     for i in range(5):
         resp = await b.FormulateAnswer(question, context)
         if isinstance(resp, FinalAnswer):
-            await sio.emit(
-                "message", {"state": "draft answer: " + resp.answer, "icon": "pencil"}
-            )
             return resp.answer
 
-        await sio.emit(
-            "message",
-            {
-                "state": f"querying pinecone docs index: {resp.question}",
-                "icon": "github",
-            },
-        )
+        sio.add_action(type="RAGQuery", content=f"Querying pinecone docs index: {resp.question}")
+
         await asyncio.sleep(random.randint(1, 3))
         result = retrieve("baml", resp.question)
         context.append(Context(intent="RAGQuery", context=result))
-        await sio.emit(
-            "message",
-            {"state": f"context: {result}", "icon": "github", "indent": 1},
-        )
+        sio.add_action(type="RAGResult", content=f"Result from RAG: {result}")
 
     return "giving up, no answer found"
 
@@ -69,20 +58,12 @@ states = [
 ]
 
 
-async def run_pipeline(sio, question: str):
+async def run_pipeline(sio: AgentStateManager, questions: List[Message]):
+    question = questions[0].message
     initial_draft = await formulate_response(sio, question)
 
-    for state in states:
-        await sio.emit("message", {"state": state.__name__})
+    for s in states:
+        sio.add_action(type=s.__name__, content=f"Result from {s.__name__}")
         await asyncio.sleep(random.randint(1, 3))
 
-    await sio.emit(
-        "final_answer",
-        {
-            "answer": "The answer to your question '"
-            + question
-            + "' is: "
-            + initial_draft,
-        },
-    )
-    return question
+    sio.complete(initial_draft)

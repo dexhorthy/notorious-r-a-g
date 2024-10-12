@@ -14,3 +14,4 @@ baml_client/
 
 .env*
 !.env.example
+google_json.json
