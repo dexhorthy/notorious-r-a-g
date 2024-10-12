@@ -17,14 +17,18 @@ async def fetch_messages(channel):
     messages = []
     limit = None  # Fetches all messages in the channel
     async for message in channel.history(limit=limit):
-        messages.append(
-            {
+        message_data =  {
                 "author": message.author.name,
                 "content": message.content,
                 "timestamp": str(message.created_at),
                 "id": message.id,
+                "parent_id": None
             }
-        )
+        if message.reference:
+            # The reference attribute contains information about the message being replied to
+            message_data["parent_id"] = message.reference.message_id
+        
+        messages.append(message_data)
     return messages
 
 
