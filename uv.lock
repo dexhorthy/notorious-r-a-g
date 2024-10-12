@@ -166,12 +166,14 @@ source = { virtual = "api" }
 dependencies = [
     { name = "composio-llamaindex" },
     { name = "fastapi" },
+    { name = "python-dotenv" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "composio-llamaindex", specifier = ">=0.5.11" },
     { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "python-dotenv", specifier = ">=1.0.1" },
 ]
 
 [[package]]

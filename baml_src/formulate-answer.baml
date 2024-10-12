@@ -19,8 +19,20 @@ class RAGQuery {
   "#)
 }
 
+class Context {
+  intent string
+  context string
+}
+
+template_string PrintContext(context: Context) #"
+  {% if context.intent == "RAGQuery" %}
+  Action: RAGQuery
+  Response: {{ context.context }}
+  {% endif %}
+"#
+
 // Create a function to extract the resume from a string.
-function FormulateAnswer(query: string, context: string[]) -> RAGQuery | FinalAnswer {
+function FormulateAnswer(query: string, context: Context[]) -> RAGQuery | FinalAnswer {
   client "openai/gpt-4o" 
   prompt #"    
     You are an assistant to help users learn about BAML (a programming language for building AI agents).
@@ -29,18 +41,18 @@ function FormulateAnswer(query: string, context: string[]) -> RAGQuery | FinalAn
     Question from the user:
     {{ query }}
 
-    Pick the best action to take, in general guidelines are:
-    - Determine if the answer might be in some sort of documentation. If so, return a RAGQuery with the question to search the docs with.
-    - Answer with something vague if its a general question.
-    - Answer if there is sufficient information
-    
-    {{ ctx.output_format }}
-
     {% if context|length > 0 %}
-    {{ _.role('user') }}
     {% for c in context %}
-    {{ c }}
+    {{ PrintContext(c) }}
     {% endfor %}
     {% endif %}
+
+    {{ _.role('assistant') }}
+    Picking the best action to take, in general guidelines are:
+    - Determining if the answer might be in some sort of documentation. If so, return a RAGQuery with the question to search the docs with.
+    - Answering with something vague if its a general question.
+    - Answering if there is sufficient information
+    
+    {{ ctx.output_format }}
   "#
 }
