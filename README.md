@@ -1,2 +1,2 @@
-# notorious-r-a-g
-Notorious R.A.G.
+# Notorious R.A.G.
+
