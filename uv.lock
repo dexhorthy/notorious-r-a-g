@@ -63,6 +63,20 @@ wheels = [
 ]
 
 [[package]]
+name = "baml-py"
+version = "0.60.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e3/01/27b803151d7cb897479dc585abed415f9de85021f014ea4657be50d41182/baml_py-0.60.0-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:b3607868ace0aadeab543357e7b4e403a8f66d884d9c3237baadc54881260d12", size = 8872989 },
+    { url = "https://files.pythonhosted.org/packages/ec/79/cd19a1eb5d484c5c1d390372f554c55844479ef8db0e0a3c0eaa308e4be4/baml_py-0.60.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:af344a3c5389aad0a624388ec66fefd3ea18c12f761601648bb3476be94b1dd1", size = 8312054 },
+    { url = "https://files.pythonhosted.org/packages/da/7b/ddf7b464d0750a5b86417f00138e73f7a474bd2961c734b3c5258fe91b9e/baml_py-0.60.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d232c9b976697a6ed4ed8944d64a0cd3c876da18db6dd244dc536be2d0119b78", size = 11294890 },
+    { url = "https://files.pythonhosted.org/packages/9e/65/ed6181393f9f0fc3e2108a921a9a1a5e12597760661b55a56995c74b8b6d/baml_py-0.60.0-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:3173ac812e5c00238a0a56432b467c350d67bd3332baa1eccb19af1aeb4ab080", size = 11399574 },
+    { url = "https://files.pythonhosted.org/packages/b6/e9/1c48323747cc2ed86670a1ce7aef8f483389e08d854455e2c210515233bf/baml_py-0.60.0-cp38-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:6f7a814aea5c7dc165b1a5e6bacadbcf7b3b9f185bac6ce1c2bcc9ff628c1e7e", size = 11643540 },
+    { url = "https://files.pythonhosted.org/packages/a3/43/099a9faa7d72310033b12129ebf6c8d1adf871eed9d1cb7c7022873113dc/baml_py-0.60.0-cp38-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:ef5352b6034c2bd8cbc427ea940404e73466b45f09488a06834ecf1bdb28c4f3", size = 11293279 },
+    { url = "https://files.pythonhosted.org/packages/45/fe/27b4e07b38d4bce7fa28473a6b0de0f507f428c4cc04d7e6ec03da7ee2da/baml_py-0.60.0-cp38-abi3-win_amd64.whl", hash = "sha256:801886d648019f0c637668a6bad090ebabbb6fcacc35aee6e878f219b716e619", size = 9112010 },
+]
+
+[[package]]
 name = "bidict"
 version = "0.23.1"
 source = { registry = "https://pypi.org/simple" }
@@ -630,11 +644,15 @@ name = "notorious-r-a-g"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "baml-py" },
     { name = "reflex" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "reflex", specifier = ">=0.6.2.post1" }]
+requires-dist = [
+    { name = "baml-py", specifier = ">=0.60.0" },
+    { name = "reflex", specifier = ">=0.6.2.post1" },
+]
 
 [[package]]
 name = "packaging"

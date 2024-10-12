@@ -7,3 +7,7 @@
 __pycache__/
 assets/external/
 venv/
+
+# baml
+baml_client/
+.infisical.json
