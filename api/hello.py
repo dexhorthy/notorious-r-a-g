@@ -1,6 +1,4 @@
-import asyncio
-import random
-import time
+from pipeline.pipeline_steps import run_pipeline
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -8,7 +6,10 @@ from typing import List
 import socketio
 import uvicorn
 
-from pipeline.pipeline_steps import run_pipeline
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 app = FastAPI()
 
