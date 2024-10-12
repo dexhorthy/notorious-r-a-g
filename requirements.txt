@@ -1,1 +1,12 @@
 reflex>=0.5.5
+python-dotenv
+pinecone
+llama-index
+llama-index-utils-workflow
+llama-index-vector-stores-pinecone
+llama-index-embeddings-mistralai
+llama-index-llms-text-generation-inference
+llama-index-core
+llama-parse
+llama-index-readers-file
+pinecone
