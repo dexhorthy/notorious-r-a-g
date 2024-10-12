@@ -8,6 +8,8 @@ from typing import List
 import socketio
 import uvicorn
 
+from pipeline.pipeline_steps import run_pipeline
+
 app = FastAPI()
 
 # Create a Socket.IO AsyncServer instance
@@ -35,19 +37,7 @@ questions = []
 @app.post("/questions", response_model=Question)
 async def create_question(question: Question):
     questions.append(question)
-    for state in ["parsing question", "agent: formulating response", "agent: attaching docs and sources", "agent: reviewing answer", "agent: getting human feedback", "done"]:
-        await asyncio.sleep(random.randint(1, 3))
-        question.events.append(state)
-        await sio.emit('message', {
-            "id": question.id,
-            "events": question.events,
-            "state": state
-        })
-    await sio.emit('final_answer', {
-        "id": question.id,
-        "answer": "The answer to your question '" + question.text + "' is: you must be a bad developer then."
-    })
-    return question
+    await run_pipeline(sio, question)
 
 @app.get("/questions", response_model=List[Question])
 async def read_questions():
@@ -76,4 +66,4 @@ async def message(sid, data):
 
 
 if __name__ == "__main__":
-    uvicorn.run("hello:socket_app", host="0.0.0.0", port=8080, reload=True)
+    uvicorn.run("main:socket_app", host="0.0.0.0", port=8080, reload=True)
