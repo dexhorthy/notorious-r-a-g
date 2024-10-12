@@ -22,12 +22,15 @@ async def fetch_messages(channel):
                 "content": message.content,
                 "timestamp": str(message.created_at),
                 "id": message.id,
-                "parent_id": None
+                "parent_id": None,
+                "thread_id": None
             }
         if message.reference:
             # The reference attribute contains information about the message being replied to
             message_data["parent_id"] = message.reference.message_id
         
+        if message.thread:
+            message_data["thread_id"] = message.thread.id
         messages.append(message_data)
     return messages
 
