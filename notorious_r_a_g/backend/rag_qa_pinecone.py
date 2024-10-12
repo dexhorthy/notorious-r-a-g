@@ -65,14 +65,15 @@ from llama_index.llms.text_generation_inference import (
     TextGenerationInference,
 )
 
-parser = LlamaParse(
-result_type="markdown",
-api_key=llama_cloud_api_key
-)
+# parser = LlamaParse(
+# result_type="markdown",
+# api_key=llama_cloud_api_key
+# )
 
-file_extractor = {".pdf": parser}
-all_documents = SimpleDirectoryReader(input_files=['./file_with_info.pdf'], file_extractor=file_extractor).load_data()
-print(len(all_documents))
+# file_extractor = {".pdf": parser}
+# all_documents = SimpleDirectoryReader(input_files=['./file_with_info.pdf'], file_extractor=file_extractor).load_data()
+# print(len(all_documents))
+all_documents=[]
 
 model_name="mistral-embed"
 embed_model = MistralAIEmbedding(model_name=model_name, api_key=mistral_api_key)
