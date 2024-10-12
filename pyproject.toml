@@ -13,5 +13,9 @@ dependencies = [
     "llama-parse>=0.5.7",
     "pinecone>=5.3.1",
     "python-dotenv>=1.0.1",
+    "python-socketio>=5.11.4",
     "reflex>=0.6.2.post1",
 ]
+
+[tool.uv.workspace]
+members = ["api"]
