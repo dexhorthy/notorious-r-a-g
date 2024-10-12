@@ -14,11 +14,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-
 @asynccontextmanager  # noqa: F821
 async def lifespan(app: FastAPI):
-    await launch_discord_listener(os.getenv("DISCORD_BOT_TOKEN"))
+    # await launch_discord_listener(os.getenv("DISCORD_BOT_TOKEN"))
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 
