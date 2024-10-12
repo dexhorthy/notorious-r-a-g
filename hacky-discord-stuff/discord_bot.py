@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 discord_token = os.getenv("DISCORD_BOT_TOKEN")
-channel_ids = [1119375594984050779]
+channel_ids = [1294545886281469972]
 reader = DiscordReader(discord_token=discord_token)
 documents = reader.load_data(channel_ids=channel_ids)
 
@@ -35,24 +35,45 @@ def dump_documents_to_json(documents, output_file="discord_documents.json"):
 
 
 # Call the function to dump documents
-dump_documents_to_json(documents)
+# dump_documents_to_json(documents)
+
+import discord
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+client = discord.Client(intents=intents)
+
+@client.event
+async def on_ready():
+    print(f'We have logged in as {client.user}')
+
+@client.event
+async def on_message(message):
+    if message.channel.id not in [1294545886281469972]:
+        return
+
+    if message.content.startswith('$hello'):
+        await message.channel.send('Hello!')
+
+client.run(discord_token)
 
 
 # Create an index from the loaded documents
-index = VectorStoreIndex.from_documents(documents)
+# index = VectorStoreIndex.from_documents(documents)
 
 # Create a query engine
-query_engine = index.as_query_engine()
+# query_engine = index.as_query_engine()
 
 
 # Function to query the documents
-def query_documents(query_text):
-    response = query_engine.query(query_text)
-    return response
+# def query_documents(query_text):
+#     response = query_engine.query(query_text)
+#     return response
 
 
 # Example usage
-example_query = "What are the main topics discussed in the Discord channel?"
-result = query_documents(example_query)
-print(f"Query: {example_query}")
-print(f"Result: {result}")
+# example_query = "What are the main topics discussed in the Discord channel?"
+# result = query_documents(example_query)
+# print(f"Query: {example_query}")
+# print(f"Result: {result}")
