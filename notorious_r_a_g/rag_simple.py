@@ -24,43 +24,40 @@ data = [
 ]
 
 import time
-from pinecone import ServerlessSpec
+from pinecone import ServerlessSpec, Pinecone
 import os
-from pinecone import Pinecone
 
-# initialize connection to pinecone (get API key at app.pinecone.io)
-api_key = os.environ.get('PINECONE_API_KEY')
+def get_index(index_name):
+    api_key = os.environ.get('PINECONE_API_KEY')
 
-# configure client
-pc = Pinecone(api_key=api_key)
+    pc = Pinecone(api_key=api_key)
+    index_name = "bob"
 
-index_name = "bob"
+    cloud = 'aws'
+    region = 'us-east-1'
 
-cloud = 'aws'
-region = 'us-east-1'
+    spec = ServerlessSpec(cloud=cloud, region=region)
 
-spec = ServerlessSpec(cloud=cloud, region=region)
+    # check if index already exists (it shouldn't if this is first time)
+    if index_name not in pc.list_indexes().names():
+        # if does not exist, create index
+        pc.create_index(
+            index_name,
+            dimension=1536,
+            metric='cosine',
+            spec=spec
+        )
+        # wait for index to be initialized
+        while not pc.describe_index(index_name).status['ready']:
+            time.sleep(1)
 
-# check if index already exists (it shouldn't if this is first time)
-if index_name not in pc.list_indexes().names():
-    # if does not exist, create index
-    pc.create_index(
-        index_name,
-        dimension=1536,
-        metric='cosine',
-        spec=spec
-    )
-    # wait for index to be initialized
-    while not pc.describe_index(index_name).status['ready']:
-        time.sleep(1)
+    # connect to index
+    index = pc.Index(index_name)
 
-# connect to index
-index = pc.Index(index_name)
+    index.upsert(vectors=data)
 
-index.upsert(vectors=data)
-
-limit = 3750
 def retrieve(index, query):
+    limit = 3750
     res = get_embedding(query)
 
     # get relevant contexts
@@ -93,14 +90,19 @@ def retrieve(index, query):
             )
     return prompt
 
+def query(index, prompt):
+    prompt = retrieve(index, prompt)
+    completion = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": prompt}
+    ]
+    )
+    return completion.choices[0].message.content
 
-prompt = retrieve(index, "who is alice?")
-completion = client.chat.completions.create(
-  model="gpt-4o",
-  messages=[
-    {"role": "system", "content": "You are a helpful assistant."},
-    {"role": "user", "content": prompt}
-  ]
-)
 
-print(completion.choices[0].message.content)
+index = get_index("bob")
+query = "who is alice?"
+prompt = retrieve(index, query)
+print(query(index, prompt))
