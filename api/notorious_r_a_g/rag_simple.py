@@ -48,6 +48,7 @@ def retrieve(index_name: str, query: str) -> str:
     # build our prompt with the retrieved contexts included
     prompt_start = ""
     prompt_end = ""
+    prompt = ""
     # append contexts until hitting limit
     for i in range(1, len(contexts)):
         if len("\n\n---\n\n".join(contexts[:i])) >= limit:
