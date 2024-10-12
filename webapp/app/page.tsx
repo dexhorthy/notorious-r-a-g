@@ -34,7 +34,7 @@ export default function IndexPage() {
 
     newSocket.on('message', (data) => {
       console.log('Received message:', data);
-      setMessages(prevMessages => [...prevMessages, `${data.id}: ${data.state}`]);
+      setMessages(prevMessages => [...prevMessages, `${data.state}`]);
     });
 
     newSocket.on('final_answer', (data) => {
@@ -102,12 +102,12 @@ export default function IndexPage() {
                 ))}
               </div>
             </div>
-              {finalMessage && (
-                <div className="mt-4 p-4 bg-blue-100 rounded-lg border border-blue-300">
-                  <h3 className="font-semibold text-blue-800 mb-2">Final Answer:</h3>
-                  <p className="text-blue-900">{finalMessage}</p>
-                </div>
-              )}
+            {finalMessage && (
+              <div className="mt-4 p-4 bg-blue-100 rounded-lg border border-blue-300">
+                <h3 className="font-semibold text-blue-800 mb-2">Final Answer:</h3>
+                <p className="text-blue-900">{finalMessage}</p>
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="view-questions">View the questions asked to the bot.</TabsContent>
         </Tabs>
