@@ -1,3 +1,6 @@
+from contextlib import asynccontextmanager
+import os
+from discord_thread import launch_discord_listener
 from pipeline.pipeline_steps import run_pipeline
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +14,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-app = FastAPI()
+
+@asynccontextmanager  # noqa: F821
+async def lifespan(app: FastAPI):
+    await launch_discord_listener(os.getenv("DISCORD_BOT_TOKEN"))
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 # Create a Socket.IO AsyncServer instance
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
