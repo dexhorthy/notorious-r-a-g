@@ -8,11 +8,6 @@ from baml_client.types import Context, FinalAnswer
 from notorious_r_a_g.rag_simple import retrieve
 
 
-def parse_question():
-    # Logic for parsing question
-    pass
-
-
 async def formulate_response(sio: AsyncServer, question: str) -> str:
     await sio.emit(
         "message", {"state": "agent: formulating response", "icon": "pencil"}

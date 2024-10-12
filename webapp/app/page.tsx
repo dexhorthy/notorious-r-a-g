@@ -1,4 +1,6 @@
 "use client";
+import Image from "next/image";
+import notoriousRagLogo from "@/public/images/image.png";
 
 import Link from "next/link"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -9,12 +11,25 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useState, useEffect } from 'react'
 import { io, Socket } from 'socket.io-client'
+import ReactMarkdown from "react-markdown";
+
+function getIcon(icon: string) {
+  switch (icon) {
+    case 'pencil':
+      return '✏️';
+    case 'github':
+      return '🐙';
+    default:
+      return '❓';
+  }
+}
 
 export default function IndexPage() {
   const [question, setQuestion] = useState('')
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [messages, setMessages] = useState<string[]>([])
+  const [messageData, setMessageData] = useState<{ state: string, type: string, icon?: string }[]>([])
   const [finalMessage, setFinalMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -35,6 +50,7 @@ export default function IndexPage() {
     newSocket.on('message', (data) => {
       console.log('Received message:', data);
       setMessages(prevMessages => [...prevMessages, `${data.state}`]);
+      setMessageData(prevMessages => [...prevMessages, { state: data.state, type: data.type, icon: data.icon }]);
     });
 
     newSocket.on('final_answer', (data) => {
@@ -69,8 +85,8 @@ export default function IndexPage() {
           A Discord bot that uses RAG to answer questions.
         </p>
       </div>
-      <div className="flex gap-4">
-        <Tabs defaultValue="submit-question" className="w-[400px]">
+      <div className="flex flex-row gap-4">
+        <Tabs defaultValue="submit-question" className="w-2/3">
           <TabsList>
             <TabsTrigger value="submit-question">Submit Question</TabsTrigger>
             <TabsTrigger value="view-questions">View Questions</TabsTrigger>
@@ -88,15 +104,22 @@ export default function IndexPage() {
               </Button>
               <div className="mt-4 space-y-2">
                 <h3 className="font-semibold">Messages from server:</h3>
-                {messages.map((msg, index) => (
+                {messageData.map((msg, index) => (
                   <div key={index} className="p-2 bg-gray-100 rounded flex items-center">
-                    {index === messages.length - 1 && !finalMessage ? (
+                    {index === messageData.length - 1 && !finalMessage ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-                        {msg}
+                        <div className="flex flex-col gap-1">
+                          <ReactMarkdown>{msg.state}</ReactMarkdown>
+                        </div>
                       </>
                     ) : (
-                      msg
+                      <>
+                        {msg.icon && getIcon(msg.icon)}
+                        <div className={`flex flex-col gap-1 ${msg.icon === 'pinecone' ? 'bg-green-100' : ''}`}>
+                          <ReactMarkdown>{msg.state}</ReactMarkdown>
+                        </div>
+                      </>
                     )}
                   </div>
                 ))}
@@ -105,12 +128,23 @@ export default function IndexPage() {
             {finalMessage && (
               <div className="mt-4 p-4 bg-blue-100 rounded-lg border border-blue-300">
                 <h3 className="font-semibold text-blue-800 mb-2">Final Answer:</h3>
-                <p className="text-blue-900">{finalMessage}</p>
+                <p className="text-blue-900 flex flex-col gap-1">
+                  <ReactMarkdown>{finalMessage}</ReactMarkdown>
+                </p>
               </div>
             )}
           </TabsContent>
           <TabsContent value="view-questions">View the questions asked to the bot.</TabsContent>
         </Tabs>
+        <div className="w-1/3">
+          <Image
+            src={notoriousRagLogo}
+            alt="Notorious R.A.G. Logo"
+            width={300}
+            height={300}
+            className="rounded-lg shadow-lg"
+          />
+        </div>
       </div>
     </section>
   )
