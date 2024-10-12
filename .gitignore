@@ -11,3 +11,6 @@ venv/
 # baml
 baml_client/
 .infisical.json
+
+.env*
+!.env.example

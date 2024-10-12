@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "baml-py>=0.60.0",
+    "discord>=2.3.2",
+    "ipython>=8.28.0",
     "llama-index-embeddings-mistralai>=0.2.0",
     "llama-index-llms-text-generation-inference>=0.2.2",
     "llama-index-vector-stores-pinecone>=0.2.1",
