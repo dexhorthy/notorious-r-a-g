@@ -59,7 +59,7 @@ from llama_index.llms.openai import OpenAI
 from llama_index.core import StorageContext
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.vector_stores.pinecone import PineconeVectorStore
-from IPython.display import Markdown, display
+from IPython.display import display
 from llama_index.core.base.base_retriever import BaseRetriever
 from llama_index.llms.text_generation_inference import (
     TextGenerationInference,
@@ -89,8 +89,7 @@ index_name = "discord-bot-hackathon"
 #     dimension=embedding_dimension,
 #     metric="cosine",
 #     spec=ServerlessSpec(
-#         cloud="aws",
-#         region="us-east-1"
+#         cloud="aws", region="us-east-1"
 #     )
 # )
 
