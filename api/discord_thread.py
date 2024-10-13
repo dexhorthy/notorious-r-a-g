@@ -82,22 +82,24 @@ async def on_message(message: discord.Message):
         if "id" not in agent_response:
             print(agent_response)
             return
-        print(agent_response)
         agent_id = agent_response["id"]
         thread = await message.create_thread(
             name=agent_response["title"]
         )
-        await thread.send("working on it...")
-
+        msg = await thread.send("working on it...")
+        counter = 0
         async with thread.typing():
             while True:
                 state = AgentStateManager.from_id(agent_id)
                 final = state.final_state()
                 if final is not None:
+                    print("Response:", final)
                     await thread.send(final)
                     return
                 else:
                     await asyncio.sleep(1)
+                    counter += 1
+                    await msg.edit(content=f"Still working on it...: {counter} seconds...")
 
 
 async def run_bot():

@@ -58,8 +58,10 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
         max_steps -= 1
         resp = await b.FormulateAnswer(question, context)
         if isinstance(resp, FinalAnswer):
-            sio.add_action(type="HumanApproval", content=resp.answer)
-            res = await run_async(submit_answer_wrapper, question, resp.answer)
+            sio.add_action(type="ReadyToAnswer", content=resp.reason)
+            answer = await b.AnswerQuestion(question, context)
+            sio.add_action(type="HumanApproval", content=answer)
+            res = await run_async(submit_answer_wrapper, question, answer)
             if isinstance(res, tuple):
                 sio.add_action(type="Finalizing Answer", content=res[1])
                 return res[1]
@@ -67,7 +69,7 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
                 if "MY_EXIT_PROMPT" in res:
                     raise Exception("Human took over")
                 sio.add_action(type="Incorporating Feedback", content=res)
-                context.append(Context(intent="Draft Answer", context=resp.answer))
+                context.append(Context(intent="Draft Answer", context=answer))
                 context.append(Context(intent="Feedback from admin", context=res))
                 # Reset max_steps to 5 after a human gives feedback
                 max_steps = 5

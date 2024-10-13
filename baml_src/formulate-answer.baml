@@ -5,7 +5,9 @@ enum Action {
 // Defining a data model.
 class FinalAnswer {
   intent Action
-  answer string
+  reason string @description(#"
+    Why there is sufficient information to answer the question
+  "#)
 }
 
 enum RagAction {
@@ -86,6 +88,22 @@ function ClassifyMessage(chat: ChatMessage[]) -> Classification | NonAction {
   "#
 }
 
+function AnswerQuestion(query: string, context: Context[]) -> string {
+  client "openai/gpt-4o"
+  prompt #"
+    Question from the user about BAML (a programming language for building AI agents).
+    {{ query }}
+
+    {{ _.role('user') }}
+    {% if context|length > 0 %}
+    {% for c in context %}
+    {{ PrintContext(c) }}
+    {% endfor %}
+    {% endif %}
+  "#
+}
+
+
 // Create a function to extract the resume from a string.
 function FormulateAnswer(query: string, context: Context[]) -> RAGQuery | FinalAnswer {
   client "openai/gpt-4o" 
@@ -97,16 +115,16 @@ function FormulateAnswer(query: string, context: Context[]) -> RAGQuery | FinalA
     {{ query }}
 
     {% if context|length > 0 %}
+    Information:
     {% for c in context %}
     {{ PrintContext(c) }}
     {% endfor %}
     {% endif %}
 
     {{ _.role('assistant') }}
-    Picking the best action to take, in general guidelines are:
-    - Determining if the answer might be in some sort of documentation. If so, return a RAGQuery with the question to search the docs with.
-    - Answering with something vague if its a general question.
-    - Answering if there is sufficient information
+    Picking the best action to take next:
+    - Query the RAG system for more information (i.e. syntax)
+    - Determine if there is enough information to answer the question
     
     {{ ctx.output_format }}
   "#

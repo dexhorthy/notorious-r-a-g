@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
+from baml_client.types import QuestionType
 from discord_thread import run_bot
 from baml_client.types import Classification
 from pipeline.pipeline_steps import run_pipeline
@@ -42,7 +43,10 @@ async def start_agent(
 ) -> dict[str, str]:
     if isinstance(messages, str):
         messages = [Message(user_id="web_app", message=messages)]
-    classification = b.ClassifyMessage(messages)
+    try:
+        classification = b.ClassifyMessage(messages)
+    except Exception as e:
+        classification = Classification(intent=QuestionType.Troubleshooting, title=messages[0].message[:20])
     if isinstance(classification, Classification):
         state = AgentStateManager.create(InitialState(messages=messages, classification=classification))
         background_tasks.add_task(run_pipeline, state, messages)
