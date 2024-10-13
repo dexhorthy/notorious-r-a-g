@@ -144,8 +144,18 @@ function Component({ records }: { records: DBRecord[] }) {
                 onClick={() => setSelectedRecord(record)}
               >
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold mb-1 truncate">{record.data?.initial_state?.[0]?.message || 'No question'}</span>
+                  <div className="flex items-center gap-2">
+                    {record.data?.initial_state?.[0]?.avatar_url && (
+                      <img
+                        src={record.data.initial_state[0].avatar_url}
+                        alt="User Avatar"
+                        className="w-6 h-6 rounded-full mb-1"
+                      />
+                    )}
+                    <span className="text-sm font-semibold mb-1 truncate">{record.data?.initial_state?.[0]?.message || 'No question'}</span>
+                  </div>
                   <div className="flex items-center justify-between text-xs text-gray-500">
+
                     <span>{PSTDateRelative(record.data.create_time_ms.getTime())}</span>
                     <div className="flex items-center space-x-2">
                       <Badge className={`${stateColors[record.data?.state ?? 'running']} text-white`}>
@@ -162,7 +172,16 @@ function Component({ records }: { records: DBRecord[] }) {
       <div className="w-2/3 overflow-y-auto">
         {selectedRecord ? (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">{selectedRecord.data?.initial_state?.[0]?.message || 'No question'}</h2>
+            <div className="flex items-center gap-2">
+              {selectedRecord.data?.initial_state?.[0]?.avatar_url && (
+                <img
+                  src={selectedRecord.data.initial_state[0].avatar_url}
+                  alt="User Avatar"
+                  className="w-10 h-10 rounded-full mb-2"
+                />
+              )}
+              <h2 className="text-2xl font-bold">{selectedRecord.data?.initial_state?.[0]?.message || 'No question'}</h2>
+            </div>
             <div>
               <h4 className="text-sm font-semibold mb-2">Initial State:</h4>
               <div className="space-y-2 border-l-2 border-gray-200 pl-3">

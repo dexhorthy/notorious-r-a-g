@@ -24,7 +24,7 @@ export default function IndexPage() {
               Notorious R.A.G.
             </h1>
             <p className="mt-3 text-xl text-gray-500 sm:mt-5 sm:text-2xl">
-              A Discord bot that uses RAG to answer questions.
+              Leverage the knowledge in your Discord server to answer inbound questions.
             </p>
           </div>
           <div className="ml-6">
