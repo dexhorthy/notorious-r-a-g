@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from pydantic import BaseModel
 from typing import List, Literal, Optional
@@ -15,9 +16,12 @@ FinalState = str
 class Action(BaseModel):
     type: str
     content: str
+    create_time_ms: Optional[int] = None
 
 
 class AgentState(BaseModel):
+    create_time_ms: Optional[int] = None
+    update_time_ms: Optional[int] = None
     state: StateName
     initial_state: InitialState
     actions: list[Action]
@@ -25,8 +29,14 @@ class AgentState(BaseModel):
 
     @staticmethod
     def create(start: InitialState):
+        now = int(datetime.utcnow().timestamp() * 1000)
         return AgentState(
-            state="running", initial_state=start, actions=[], final_state=None
+            state="running",
+            initial_state=start,
+            actions=[],
+            final_state=None,
+            create_time_ms=now,
+            update_time_ms=now,
         )
 
 
@@ -73,14 +83,22 @@ class AgentStateManager:
         return self.__doc_ref.id
 
     def add_action(self, *, type: str, content: str):
-        self.__data.actions.append(Action(type=type, content=content))
+        self.__data.actions.append(
+            Action(
+                type=type,
+                content=content,
+                create_time_ms=int(datetime.utcnow().timestamp() * 1000),
+            )
+        )
         self.__doc_ref.set(self.__data.model_dump())
 
     def cancel(self):
         self.__data.state = "cancelled"
+        self.__data.update_time_ms = int(datetime.utcnow().timestamp() * 1000)
         self.__doc_ref.set(self.__data.model_dump())
 
     def complete(self, final_state: FinalState):
         self.__data.state = "completed"
         self.__data.final_state = final_state
+        self.__data.update_time_ms = int(datetime.utcnow().timestamp() * 1000)
         self.__doc_ref.set(self.__data.model_dump())

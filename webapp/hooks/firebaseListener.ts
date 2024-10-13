@@ -1,49 +1,64 @@
 // hooks/useFirebaseListener.js
-import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
+import { useEffect, useState } from "react"
+import { collection, onSnapshot, query } from "firebase/firestore"
+
+import { db } from "../firebase"
 
 type Message = {
-    user: string;
-    message: string;
+  user: string
+  message: string
 }
-export type StateName = 'running' | 'completed' | 'failed' | 'cancelled';
-type InitialState = Message[];
-type FinalState = string | null;
+export type StateName = "running" | "completed" | "failed" | "cancelled"
+type InitialState = Message[]
+type FinalState = string | null
 
 interface Action {
-    type: string;
-    content: string;
+  type: string
+  content: string
+  create_time_ms: number
 }
 
 interface AgentState {
-    state: StateName;
-    initial_state: InitialState;
-    actions: Action[];
-    final_state: FinalState;
+  create_time_ms: Date
+  update_time_ms: Date
+  state: StateName
+  initial_state: InitialState
+  actions: Action[]
+  final_state: FinalState
 }
 
-
 export type DBRecord = {
-    id: string;
-    data: AgentState
+  id: string
+  data: AgentState
 }
 
 export function useFirebaseListener(collectionName: string) {
-  const [data, setData] = useState<DBRecord[]>([]);
+  const [data, setData] = useState<DBRecord[]>([])
 
   useEffect(() => {
-    const q = query(collection(db, collectionName));
+    const q = query(collection(db, collectionName))
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const items: DBRecord[] = [];
+      const items: DBRecord[] = []
       querySnapshot.forEach((doc) => {
-        items.push({ id: doc.id, data: doc.data() as AgentState });
-      });
-      setData(items);
-    });
+        const docData = doc.data() as AgentState
+        const agentState: AgentState = {
+          ...docData,
+          create_time_ms: new Date(docData.create_time_ms),
+          update_time_ms: new Date(docData.update_time_ms),
+        }
+        items.push({ id: doc.id, data: agentState })
+      })
 
-    return () => unsubscribe();
-  }, [collectionName]);
+      // Sort by create_time_ms
+      items.sort((a, b) => {
+        return a.data.create_time_ms.getTime() - b.data.create_time_ms.getTime()
+      })
 
-  return data;
+      setData(items)
+    })
+
+    return () => unsubscribe()
+  }, [collectionName])
+
+  return data
 }

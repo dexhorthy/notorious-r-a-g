@@ -2,7 +2,6 @@ import asyncio
 import random
 from typing import List
 
-from socketio import AsyncServer
 from pipeline.db import AgentStateManager
 from baml_client.async_client import b
 from baml_client.types import Context, FinalAnswer
