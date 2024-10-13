@@ -19,13 +19,13 @@ async def on_ready():
 
 
 @client.event
-async def on_message(message):
+async def on_message(message: discord.Message):
     if message.author == client.user:
         return
 
     if (
         message.channel.id not in [1294545886281469972]
-    ) and message.channel.parent.id not in [1294545886281469972]:
+    ) and message.channel.parent and message.channel.parent.id not in [1294545886281469972]:
         return
 
     if not message.content.startswith("$help"):
@@ -77,7 +77,8 @@ async def on_message(message):
                 f"{os.getenv('API_URL', 'http://localhost:8080')}/agent",
                 json=[
                     Message(
-                        user_id=str(message.author.id), message=message.content
+                        user_id=str(message.author.id), message=message.content,
+                        avatar_url=message.author.display_avatar.url
                     ).model_dump()
                 ],
             ) as response:
@@ -85,17 +86,17 @@ async def on_message(message):
 
         agent_id = agent_response["id"]
 
-        await thread.typing()
-        while True:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{os.getenv('API_URL', 'http://localhost:8080')}/agent/{agent_id}"  # noqa: F821
-                ) as response:
-                    final_state = await response.json()
-            if final_state is None:
-                continue
-            await thread.send(final_state)
-            break
+        async with thread.typing():
+            while True:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        f"{os.getenv('API_URL', 'http://localhost:8080')}/agent/{agent_id}"  # noqa: F821
+                    ) as response:
+                        final_state = await response.json()
+                if final_state is None:
+                    continue
+                await thread.send(final_state)
+                return
 
 
 if __name__ == "__main__":
