@@ -35,9 +35,9 @@ async def fetch_messages(channel):
             "thread_name": msg["thread_name"],
         })
 
-    messages = [{"id": thread_id, "thread_name": msgs[1].get("thread_name"), "values": msgs} for thread_id, msgs in organized_messages.items()]
+    messages = [{"thread_id": thread_id, "thread_name": msgs[1].get("thread_name"), "messages": msgs} for thread_id, msgs in organized_messages.items()]
     for msg in messages:
-        msg["values"] = list(map(lambda x: {k: v for k, v in x.items() if k != "thread_name"}, msg["values"]))
+        msg["messages"] = list(map(lambda x: {k: v for k, v in x.items() if k != "thread_name"}, msg["messages"]))
 
     return messages
 
