@@ -94,9 +94,10 @@ class AgentStateManager:
         )
         self.__doc_ref.set(self.__data.model_dump())
 
-    def cancel(self):
+    def cancel(self, message: str):
         self.__data.state = "cancelled"
         self.__data.update_time_ms = int(datetime.utcnow().timestamp() * 1000)
+        self.__data.final_state = message
         self.__doc_ref.set(self.__data.model_dump())
 
     def complete(self, final_state: FinalState):

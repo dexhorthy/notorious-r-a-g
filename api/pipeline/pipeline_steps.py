@@ -36,8 +36,14 @@ def submit_answer_wrapper(question: str, answer: str) -> tuple[str, str] | str:
 
 
 @hl.require_approval()
-def submit_answer(question: str, answer: str) -> tuple[str, str] | str:
+def submit_answer(*, question: str, answer: str) -> tuple[str, str] | str:
     return "done", answer
+
+
+async def get_human_approval(question: str, answer: str) -> str | tuple[str, str]:
+    res = submit_answer(question=question, answer=answer)
+    return res
+
 
 
 async def formulate_response(sio: AgentStateManager, question: str) -> str:
@@ -103,9 +109,8 @@ async def run_pipeline(sio: AgentStateManager, questions: List[Message]):
     question = questions[0].message
     try:
         initial_draft = await formulate_response(sio, question)
-    except Exception:
-        logger.error("Error formulating response", exc_info=True)
-        sio.cancel()
+    except Exception as e:
+        sio.cancel(message=str(e))
         return
 
     for s in states:

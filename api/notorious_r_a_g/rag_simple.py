@@ -39,23 +39,34 @@ def get_index(index_name):
 
 
 def retrieve(index_name: str, query: str) -> str:
-    limit = 3750
     res = get_embedding(query)
 
     # get relevant contexts
     res = get_index(index_name).query(vector=res, top_k=3, include_metadata=True)
     contexts = [x.get("metadata", {}).get("text") for x in res["matches"]]
+    print(f"Found {len(contexts)} contexts for query: {query}")
     # build our prompt with the retrieved contexts included
-    prompt_start = ""
-    prompt_end = ""
-    prompt = ""
+    
     # append contexts until hitting limit
-    for i in range(1, len(contexts)):
-        if len("\n\n---\n\n".join(contexts[:i])) >= limit:
-            prompt = prompt_start + "\n\n---\n\n".join(contexts[: i - 1]) + prompt_end
+    limit = 3750
+    prompt = "No relevant information found."
+    accumulated_length = 0
+    selected_contexts = []
+
+    for context in contexts:
+        context_length = len(context) + len("\n\n---\n\n")
+        if accumulated_length + context_length > limit:
+            # Truncate the context to fit within the limit
+            remaining_space = limit - accumulated_length
+            truncated_context = context[:remaining_space - len("\n\n---\n\n")]
+            selected_contexts.append(truncated_context)
             break
-        elif i == len(contexts) - 1:
-            prompt = prompt_start + "\n\n---\n\n".join(contexts) + prompt_end
+        selected_contexts.append(context)
+        accumulated_length += context_length
+
+    if selected_contexts:
+        prompt = "\n\n---\n\n".join(selected_contexts)
+
     return prompt
 
 def retrieve_llamaindex(index_name: str, query: str) -> str:
