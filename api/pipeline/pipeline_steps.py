@@ -51,7 +51,10 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
 
     context: List[Context] = []
 
-    for i in range(15):
+    max_steps = 5
+
+    while max_steps > 0:
+        max_steps -= 1
         resp = await b.FormulateAnswer(question, context)
         if isinstance(resp, FinalAnswer):
             sio.add_action(type="HumanApproval", content=resp.answer)
@@ -63,13 +66,13 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
                 sio.add_action(type="Incorporating Feedback", content=res)
                 context.append(Context(intent="Draft Answer", context=resp.answer))
                 context.append(Context(intent="Feedback from admin", context=res))
+                # Reset max_steps to 5 after a human gives feedback
+                max_steps = 5
         else:
             sio.add_action(
                 type="RAGQuery",
                 content=f"Querying pinecone docs index: {resp.question}",
             )
-
-            await asyncio.sleep(random.randint(1, 3))
             result = await run_async(retrieve, "baml", resp.question)
             context.append(Context(intent="RAGQuery", context=result))
             sio.add_action(type="RAGResult", content=f"Result from RAG: {result}")

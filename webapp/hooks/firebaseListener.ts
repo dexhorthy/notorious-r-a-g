@@ -8,7 +8,7 @@ type Message = {
   user: string
   message: string
 }
-export type StateName = "running" | "completed" | "failed" | "cancelled"
+export type StateName = "running" | "completed" | "failed" | "cancelled" | "paused"
 type InitialState = Message[]
 type FinalState = string | null
 

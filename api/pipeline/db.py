@@ -8,7 +8,7 @@ from models import Message
 initialize_app()
 
 
-StateName = Literal["running", "completed", "failed", "cancelled"]
+StateName = Literal["running", "completed", "failed", "cancelled", "paused"]
 InitialState = List[Message]
 FinalState = str
 
@@ -85,6 +85,10 @@ class AgentStateManager:
         return self.__doc_ref.id
 
     def add_action(self, *, type: str, content: str):
+        if type == "HumanApproval":
+            self.__data.state = "paused"
+        else:
+            self.__data.state = "running"
         self.__data.actions.append(
             Action(
                 type=type,

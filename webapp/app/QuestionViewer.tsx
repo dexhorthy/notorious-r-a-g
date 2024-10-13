@@ -23,6 +23,7 @@ function Component({ records }: { records: DBRecord[] }) {
     completed: 'bg-green-500',
     failed: 'bg-red-500',
     cancelled: 'bg-yellow-500',
+    paused: 'bg-gray-500',
   }
 
   return (
