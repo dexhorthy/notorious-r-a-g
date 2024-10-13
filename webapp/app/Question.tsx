@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import QuestionViewer from "./QuestionViewer"
 
 const API_URL = "http://localhost:8080"
 
@@ -11,6 +12,7 @@ export default function Question() {
   const [question, setQuestion] = useState("")
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState("")
+  const [agentId, setAgentId] = useState<string | null>(null)
 
   const handleSubmit = useCallback(async () => {
     if (!question) return
@@ -30,6 +32,9 @@ export default function Question() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
+
+      const data = await response.json()
+      setAgentId(data.id)
 
       setStatus('success')
       // You can handle the successful response here if needed
@@ -64,6 +69,9 @@ export default function Question() {
         <Alert variant="destructive">
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
+      )}
+      {agentId && (
+        <QuestionViewer agentId={agentId} />
       )}
     </div>
   )

@@ -77,6 +77,8 @@ class AgentStateManager:
             raise ValueError(f"Id {id} does not exist")
 
     def final_state(self) -> FinalState | None:
+        if self.__data.state == "cancelled":
+            return "sorry, I couldn't get an answer"
         return self.__data.final_state
 
     def id(self) -> str:
