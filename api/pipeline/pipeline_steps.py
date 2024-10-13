@@ -1,5 +1,5 @@
 import asyncio
-from math import exp
+import logging
 import random
 from typing import Callable, List
 
@@ -10,6 +10,8 @@ from notorious_r_a_g.rag_simple import retrieve
 from models import Message
 
 from humanlayer import HumanLayer, ContactChannel, SlackContactChannel
+
+logger = logging.getLogger(__name__)
 
 hl = HumanLayer(
     verbose=True,
@@ -22,9 +24,15 @@ hl = HumanLayer(
 )
 
 
-async def run_async(func: Callable, *args, **kwargs):  # noqa: F821
+async def run_async(func: Callable, *args):  # noqa: F821
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, func, *args, **kwargs)
+    return await loop.run_in_executor(None, func, *args)
+
+
+# run_async doesn't support **kwargs, so we need a wrapper, because openai function calling
+# doesn't support *args
+def submit_answer_wrapper(question: str, answer: str) -> tuple[str, str] | str:
+    return submit_answer(question=question, answer=answer)
 
 
 @hl.require_approval()
@@ -41,7 +49,7 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
         resp = await b.FormulateAnswer(question, context)
         if isinstance(resp, FinalAnswer):
             sio.add_action(type="HumanApproval", content=resp.answer)
-            res = await run_async(submit_answer, question=question, answer=resp.answer)
+            res = await run_async(submit_answer_wrapper, question, resp.answer)
             if isinstance(res, tuple):
                 sio.add_action(type="Finalizing Answer", content=res[1])
                 return res[1]
@@ -96,6 +104,7 @@ async def run_pipeline(sio: AgentStateManager, questions: List[Message]):
     try:
         initial_draft = await formulate_response(sio, question)
     except Exception:
+        logger.error("Error formulating response", exc_info=True)
         sio.cancel()
         return
 
