@@ -12,10 +12,19 @@ enum RagAction {
   RAGQuery
 }
 
+
+enum Source {
+  Documentation
+  Discord
+}
+
 class RAGQuery {
   intent RagAction
   question string @description(#"
     A question to use for searching a knowledge base for relevant context
+  "#)
+  filter_to Source[] @description(#"
+    if specified, the search should be limited to these sources
   "#)
 }
 

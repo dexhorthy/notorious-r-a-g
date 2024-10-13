@@ -1,12 +1,14 @@
 import asyncio
 import logging
 import random
-from typing import Callable, List
+from typing import Callable, List, Tuple
+from pipeline.db import RagItem
+from pipeline.db import RagResult
+from notorious_r_a_g.rag_simple import retrieve_llamaindex
 
 from pipeline.db import AgentStateManager
 from baml_client.async_client import b
 from baml_client.types import Context, FinalAnswer
-from notorious_r_a_g.rag_simple import retrieve
 from models import Message
 
 from humanlayer import HumanLayer, ContactChannel, SlackContactChannel
@@ -70,11 +72,35 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
         else:
             sio.add_action(
                 type="RAGQuery",
-                content=f"Querying pinecone docs index: {resp.question}",
+                content=f'Filtered: {resp.filter_to}\n{resp.question}',
             )
-            result = await run_async(retrieve, "baml", resp.question)
-            context.append(Context(intent="RAGQuery", context=result))
-            sio.add_action(type="RAGResult", content=f"Result from RAG: {result}")
+            result = await run_async(retrieve_llamaindex, "baml2", resp.question, resp.filter_to)
+
+            def make_rag_prompt(contexts: List[Tuple[str, dict]]) -> str:
+                # append contexts until hitting limit
+                limit = 3750
+                prompt = "No relevant information found."
+                accumulated_length = 0
+                selected_contexts = []
+
+                for (context, meta) in contexts:
+                    context_length = len(context) + len("\n\n---\n\n")
+                    if accumulated_length + context_length > limit:
+                        # Truncate the context to fit within the limit
+                        remaining_space = limit - accumulated_length
+                        truncated_context = context[:remaining_space - len("\n\n---\n\n")]
+                        selected_contexts.append(truncated_context)
+                        break
+                    selected_contexts.append(context)
+                    accumulated_length += context_length
+
+                if selected_contexts:
+                    prompt = "\n\n---\n\n".join(selected_contexts)
+
+                return prompt
+
+            context.append(Context(intent="RAGQuery", context=make_rag_prompt(result)))
+            sio.add_action(type="RAGResult", content=RagResult(result=[RagItem(content=content, metadata=metadata) for content, metadata in result]))
 
     raise Exception("No answer found")
 
