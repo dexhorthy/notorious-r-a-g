@@ -152,7 +152,6 @@ version = "0.1.0"
 source = { virtual = "api" }
 dependencies = [
     { name = "baml-py" },
-    { name = "composio-llamaindex" },
     { name = "discord" },
     { name = "fastapi" },
     { name = "firebase-admin" },
@@ -172,7 +171,6 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "baml-py", specifier = ">=0.60.0" },
-    { name = "composio-llamaindex", specifier = ">=0.5.11" },
     { name = "discord", specifier = ">=2.3.2" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "firebase-admin", specifier = ">=6.5.0" },
