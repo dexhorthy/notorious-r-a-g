@@ -107,34 +107,6 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
     raise Exception("No answer found")
 
 
-def attach_docs_and_sources():
-    # Logic for attaching docs and sources
-    pass
-
-
-def review_answer():
-    # Logic for reviewing answer
-    pass
-
-
-def get_human_feedback():
-    # Logic for getting human feedback
-    pass
-
-
-def mark_as_done():
-    # Logic for marking the process as done
-    pass
-
-
-states = [
-    attach_docs_and_sources,
-    review_answer,
-    get_human_feedback,
-    mark_as_done,
-]
-
-
 async def run_pipeline(sio: AgentStateManager, questions: List[Message]):
     question = questions[0].message
     try:
