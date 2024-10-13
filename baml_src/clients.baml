@@ -8,6 +8,14 @@ client<llm> CustomGPT4o {
   }
 }
 
+client<llm> TogetherAI {
+  provider "openai-generic"
+  options {
+    model "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
+    api_key env.TOGETHER_API_KEY
+  }
+}
+
 client<llm> CustomGPT4oMini {
   provider openai
   options {
@@ -34,10 +42,10 @@ client<llm> CustomHaiku {
 }
 
 client<llm> CustomFast {
-  provider round-robin
+  provider fallback
   options {
     // This will alternate between the two clients
-    strategy [GPT4oMini, Haiku]
+    strategy [TogetherAI, GPT4oMini]
   }
 }
 

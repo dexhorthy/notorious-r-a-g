@@ -73,7 +73,7 @@ class ChatMessage {
 
 
 function ClassifyMessage(chat: ChatMessage[]) -> Classification | NonAction {
-  client "openai/gpt-4o-mini"
+  client CustomFast
   prompt #"
     Given the user is messaging a forum about BAML (a programming language for building AI agents), classify the message.
 
