@@ -122,7 +122,10 @@ function ActionContent({ content, isExpanded, truncatedContent }: ActionContentP
                     if (key === "url") {
                       return (
                         <a key={key} href={String(value)} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline text-xs">
-                          Link
+                          <Badge key={key} className="bg-secondary text-blue-500 text-xs">
+                            <FileText className="w-3 h-3 inline-block mr-1" />
+                            Link
+                          </Badge>
                         </a>
                       );
                     } else if (key === "channel_name") {
@@ -141,7 +144,7 @@ function ActionContent({ content, isExpanded, truncatedContent }: ActionContentP
                       if (value === "docs") {
                         return (
                           <Badge key={key} className="bg-primary text-primary-foreground text-xs">
-                            <FileText className="w-3 h-3 inline-block mr-1" />
+                            -
                           </Badge>
                         );
                       } else if (value === "discord_thread") {

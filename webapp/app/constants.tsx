@@ -16,7 +16,14 @@ interface ActionColor {
 
 export const actionColors: Record<string, ActionColor> = {
   default: { class: "bg-gray-100 text-gray-800", icon: ChevronDown },
-  RAGQuery: { class: "bg-blue-100 text-blue-800", icon: Wrench },
+  RAGQuery: { class: "bg-blue-100 text-blue-800", icon: () => (
+    <img
+      src="https://avatars.githubusercontent.com/u/130722866?s=200&v=4"
+      alt="LLamaIndex Logo"
+      className="w-8 h-8"
+    />
+  ),
+},
   RAGResult: {
     class: "bg-blue-100 text-blue-800",
     icon: () => (
