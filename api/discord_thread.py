@@ -3,16 +3,14 @@ import os
 import aiohttp
 import discord
 import requests
-from dotenv import load_dotenv
+import uvicorn
+from pipeline.db import AgentStateManager
 from models import Message
-
-load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True
 
 client = discord.Client(intents=intents)
-
 
 @client.event
 async def on_ready():
@@ -29,9 +27,6 @@ async def on_message(message: discord.Message):
         and message.channel.parent
         and message.channel.parent.id not in [1294545886281469972]
     ):
-        return
-
-    if not message.content.startswith("$help"):
         return
 
     if isinstance(message.channel, discord.Thread):
@@ -62,8 +57,6 @@ async def on_message(message: discord.Message):
         #         json=messages
         #     ) as response:
         #         agent_response = await response.json()
-
-        agent_id = agent_response["id"]
         # await thread.send(f"Processing your request. Agent ID: {agent_id}")
         # requests.post(
         #     f"{os.getenv('API_URL', 'http://localhost:8080')}/agent",  # noqa: F821
@@ -71,12 +64,6 @@ async def on_message(message: discord.Message):
         # )
     else:
         # Create a new thread for the question
-        thread = await message.create_thread(
-            name="New Question Thread", auto_archive_duration=60
-        )
-
-        await thread.send("working on it...")
-
         print(message.content)
 
         async with aiohttp.ClientSession() as session:
@@ -92,21 +79,33 @@ async def on_message(message: discord.Message):
             ) as response:
                 agent_response = await response.json()
 
+        if "id" not in agent_response:
+            print(agent_response)
+            return
+        print(agent_response)
         agent_id = agent_response["id"]
+        thread = await message.create_thread(
+            name=agent_response["title"]
+        )
+        await thread.send("working on it...")
 
         async with thread.typing():
             while True:
-                await asyncio.sleep(1)
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                        f"{os.getenv('API_URL', 'http://localhost:8080')}/agent/{agent_id}"  # noqa: F821
-                    ) as response:
-                        final_state = await response.json()
-                if final_state is None:
-                    continue
-                await thread.send(final_state)
-                return
+                state = AgentStateManager.from_id(agent_id)
+                final = state.final_state()
+                if final is not None:
+                    await thread.send(final)
+                    return
+                else:
+                    await asyncio.sleep(1)
 
 
-if __name__ == "__main__":
-    client.run(os.getenv("DISCORD_BOT_TOKEN") or "")  # noqa: F821
+async def run_bot():
+    try:
+        await client.start(os.getenv("DISCORD_BOT_TOKEN") or "")  # noqa: F821
+    except KeyboardInterrupt:
+        print("Shutting down bot...")
+        await client.close()
+    except Exception as e:
+        print("An error occurred while running the bot.")
+    

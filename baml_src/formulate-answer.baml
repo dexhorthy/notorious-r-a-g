@@ -34,6 +34,49 @@ template_string PrintContext(context: Context) #"
   {% endif %}
 "#
 
+enum QuestionType {
+  Trivia
+  Bug
+  Troubleshooting
+  FeatureRequest
+  Documentation
+}
+
+class Classification {
+  intent QuestionType
+  title string @description(#"
+    Short title for a thread pertaining to the question
+  "#)
+}
+
+enum NonAction {
+  Spam
+  Thanking
+  Other
+}
+
+class ChatMessage {
+  user_id string
+  message string
+  avatar_url string?
+  name string?
+}
+
+
+function ClassifyMessage(chat: ChatMessage[]) -> Classification | NonAction {
+  client "openai/gpt-4o-mini"
+  prompt #"
+    Given the user is messaging a forum about BAML (a programming language for building AI agents), classify the message.
+
+    {{ ctx.output_format }}
+
+    {{ _.role('user') }}
+    {% for m in chat %}
+    {{ m.message }}
+    {% endfor %}
+  "#
+}
+
 // Create a function to extract the resume from a string.
 function FormulateAnswer(query: string, context: Context[]) -> RAGQuery | FinalAnswer {
   client "openai/gpt-4o" 

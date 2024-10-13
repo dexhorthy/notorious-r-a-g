@@ -10,7 +10,13 @@ export type Message = {
   message: string
 }
 export type StateName = "running" | "completed" | "failed" | "cancelled" | "paused"
-export type InitialState = Message[]
+export type InitialState = Message[] | {
+    messages: Message[]
+    classification: {
+        intent: string
+        title: string
+    }
+}
 export type FinalState = string | null
 
 export interface Action {

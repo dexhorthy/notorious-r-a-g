@@ -1,23 +1,22 @@
+import asyncio
 from contextlib import asynccontextmanager
+from discord_thread import run_bot
+from baml_client.types import Classification
 from pipeline.pipeline_steps import run_pipeline
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pipeline.db import AgentStateManager, FinalState
+from pipeline.db import AgentStateManager, FinalState, InitialState
 from pydantic import BaseModel
 from typing import List
 import uvicorn
 from models import Message
+from baml_client import b
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-
-@asynccontextmanager  # noqa: F821
+@asynccontextmanager
 async def lifespan(app: FastAPI):
-    # await launch_discord_listener(os.getenv("DISCORD_BOT_TOKEN"))
+    task = asyncio.create_task(run_bot())
     yield
-
+    task.cancel()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -43,9 +42,13 @@ async def start_agent(
 ) -> dict[str, str]:
     if isinstance(messages, str):
         messages = [Message(user_id="web_app", message=messages)]
-    state = AgentStateManager.create(messages)
-    background_tasks.add_task(run_pipeline, state, messages)
-    return {"id": state.id()}
+    classification = b.ClassifyMessage(messages)
+    if isinstance(classification, Classification):
+        state = AgentStateManager.create(InitialState(messages=messages, classification=classification))
+        background_tasks.add_task(run_pipeline, state, messages)
+        return {"id": state.id(), "title": classification.title}
+    else:
+        return {"ignore_reason": classification.value}
 
 
 @app.get("/agent/{agent_id}")
@@ -69,6 +72,11 @@ async def read_agent(agent_id: str) -> FinalState | None:
 # async def message(sid, data):
 #     print(f"Received message from {sid}: {data}")
 #     await create_question(Question(id=len(questions), text=data["text"]))
+
+# where the magic happens
+# register an asyncio.create_task(client.start()) on app's startup event
+#                                        ^ note not client.run()
+
 
 
 if __name__ == "__main__":

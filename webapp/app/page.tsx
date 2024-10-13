@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 import { useState } from 'react'
 import Question from "./Question";
-import QuestionViewer from "./QuestionViewer";
+import AgentDashboard from "./AgentDashboard";
 
 export default function IndexPage() {
   const [isConnected, setIsConnected] = useState(true)
@@ -48,7 +48,7 @@ export default function IndexPage() {
               <Question />
             </TabsContent>
             <TabsContent value="view" className="mt-6">
-              <QuestionViewer />
+              <AgentDashboard />
             </TabsContent>
           </Tabs>
         </div>

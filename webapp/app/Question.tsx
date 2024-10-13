@@ -4,7 +4,7 @@ import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import QuestionViewer from "./QuestionViewer"
+import AgentDashboard from "./AgentDashboard"
 
 const API_URL = "http://localhost:8080"
 
@@ -33,9 +33,11 @@ export default function Question() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data: { id: string, title: string } | { ignore_reason: string } = await response.json()
+      if ('ignore_reason' in data) {
+        throw new Error(data.ignore_reason)
+      }
       setAgentId(data.id)
-
       setStatus('success')
       // You can handle the successful response here if needed
     } catch (error) {
@@ -66,7 +68,7 @@ export default function Question() {
         </Alert>
       )}
       {agentId && (
-        <QuestionViewer agentId={agentId} />
+        <AgentDashboard agentId={agentId} />
       )}
     </div>
   )

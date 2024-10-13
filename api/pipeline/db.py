@@ -3,14 +3,18 @@ import json
 from pydantic import BaseModel
 from typing import List, Literal, Optional
 from firebase_admin import firestore, initialize_app
+from baml_client.types import Classification
 from models import Message
 
 initialize_app()
 
 
 StateName = Literal["running", "completed", "failed", "cancelled", "paused"]
-InitialState = List[Message]
 FinalState = str
+
+class InitialState(BaseModel):
+    messages: List[Message]
+    classification: Classification
 
 
 class Action(BaseModel):

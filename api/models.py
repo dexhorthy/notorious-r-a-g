@@ -1,9 +1,3 @@
-from pydantic import BaseModel
+from baml_client.types import ChatMessage as Message
 
-
-class Message(BaseModel):
-    user_id: str
-    message: str
-    avatar_url: str | None = None
-    name: str | None = None
-
+__all__ = ["Message"]
