@@ -10,7 +10,7 @@ export default function Page({ agentId }: { agentId?: string }) {
   } else {
     const record = pages.find(page => page.id === agentId)
     if (!record) {
-      return <Component records={pages} />
+      return null
     }
     return <Component records={[record]} />
   }
