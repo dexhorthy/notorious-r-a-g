@@ -528,6 +528,11 @@
                 "author": "hellovai",
                 "timestamp": "2024-10-12 15:03:17.382000+00:00",
                 "content": "BAML editor UI component"
+            },
+            {
+                "author": "sarahalzmammi",
+                "timestamp": "2024-10-13 12:07:04.149000+00:00",
+                "content": "Hi, is there a way to track the tokens used, how many retries occurred, and whether the fallback model was used?"
             }
         ]
     },
@@ -13184,6 +13189,102 @@
                 "author": "hellovai",
                 "timestamp": "2024-10-12 15:59:11.332000+00:00",
                 "content": "This repo does this"
+            }
+        ]
+    },
+    {
+        "thread_id": 1294940638625660980,
+        "thread_name": "reading partial jsons",
+        "messages": [
+            {
+                "author": "sarahalzmammi",
+                "timestamp": "2024-10-13 08:31:47.082000+00:00",
+                "content": "Hi there,\n\nI would like to ask whether BAML  can help when a valid JSON is generated but stops before completion due to the following error:\n\nClient: Vertex() - 29767ms. StopReason: “MAX_TOKENS”\n\nAs a result, the JSON didn’t end properly. Is there a way to extract the valid portion of the JSON without needing to retry the entire process?"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:32:20.482000+00:00",
+                "content": ""
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:32:22.419000+00:00",
+                "content": "this should already be possible!"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:32:32.187000+00:00",
+                "content": "one easy way to do this is use streams"
+            },
+            {
+                "author": "sarahalzmammi",
+                "timestamp": "2024-10-13 08:33:28.386000+00:00",
+                "content": "How? When I encountered this issue, it returned an empty array."
+            },
+            {
+                "author": "sarahalzmammi",
+                "timestamp": "2024-10-13 08:34:11.703000+00:00",
+                "content": "Streams sound good. Is there a better approach?"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:34:14.399000+00:00",
+                "content": "you can parse all the relevant context using streaming like so:\n\n```\nstream = b.stream.MyFunction(...)\n\nlast_valid = None\nfor partial in stream:\n   last_valid = partial\n\nresponse = await stream.get_final_response()\n\n# check to see which has more data, response, or last_valid\n```"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:34:30.984000+00:00",
+                "content": "i think it should also already work for what you have with an array"
+            },
+            {
+                "author": "sarahalzmammi",
+                "timestamp": "2024-10-13 08:35:22.180000+00:00",
+                "content": "I really appreciate your help; I will definitely give it a go"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:35:26.237000+00:00",
+                "content": "we are releasing a patch to the paser that should also help with this:\nhttps://github.com/BoundaryML/baml/pull/1031"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:36:05.793000+00:00",
+                "content": "this will be in tomorrows release, so you'll have it by monday, but we dramatically improved our ability to parse partial objects"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:36:14.466000+00:00",
+                "content": "which likely is the reason you are getting empty `[]`"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:36:32.241000+00:00",
+                "content": "(so if you can wait, this will magically fix itself on monday!)"
+            },
+            {
+                "author": "sarahalzmammi",
+                "timestamp": "2024-10-13 08:45:53.480000+00:00",
+                "content": "Looks great! is it going to fix it by parsing the valid portion anyway, or does it have to be done while using streams?"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:46:07.976000+00:00",
+                "content": "yep, it will parse the valid portions anyways"
+            },
+            {
+                "author": "hellovai",
+                "timestamp": "2024-10-13 08:46:18.501000+00:00",
+                "content": "so streaming wont be necessary"
+            },
+            {
+                "author": "sarahalzmammi",
+                "timestamp": "2024-10-13 08:46:46.936000+00:00",
+                "content": "Awesome!"
+            },
+            {
+                "author": "sarahalzmammi",
+                "timestamp": "2024-10-13 08:46:51.961000+00:00",
+                "content": "thank you"
             }
         ]
     }

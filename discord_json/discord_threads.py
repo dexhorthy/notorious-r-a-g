@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-
 """Script to dump threads of a discord channel to a json file
 
 Sample commands:
-$ python3 ./discord_json/discord_threads.py --channel-id 1253172394345107466
-$ python3 ./discord_json/discord_threads.py --channel-id 1253172325205934181
-$ python3 ./discord_json/discord_threads.py --channel-id 1119375594984050779
-
+$ python3 ./discord_json/discord_threads.py --channel-id 1253172394345107466 # questions
+$ python3 ./discord_json/discord_threads.py --channel-id 1253172325205934181 # troubleshooting
+$ python3 ./discord_json/discord_threads.py --channel-id 1119375594984050779 # general
 """
 from pathlib import Path
 import discord
@@ -24,11 +22,14 @@ parser = argparse.ArgumentParser()
 # questions: 1253172394345107466 (default)
 # troubleshooting: 1253172325205934181
 # general: 1119375594984050779
-parser.add_argument('--channel-id', type=str, help='Discord channel ID', default=1253172394345107466)
+parser.add_argument(
+    "--channel-id", type=int, help="Discord channel ID", default=1253172394345107466
+)
 
 args = parser.parse_args()
 
 client = discord.Client(intents=discord.Intents.default())
+
 
 async def fetch_messages(channel):
     messages = []
@@ -65,7 +66,7 @@ async def fetch_messages(channel):
             "thread_name": msgs[1].get("thread_name"),
             "messages": msgs,
         }
-        for thread_id, msgs in organized_messages.items()
+        for thread_id, msgs in organized_messages.items() if len(msgs) >= 2
     ]
     for msg in messages:
         msg["messages"] = list(
@@ -114,4 +115,7 @@ async def on_ready():
     print(f"Saved {len(messages)} messages to {filename}")
     await client.close()
 
-client.run(os.getenv("DISCORD_BOT_TOKEN", "FAKE_TOKEN"))
+
+TOKEN = os.getenv("DISCORD_BOT_TOKEN", "FAKE_TOKEN")
+print(f"{TOKEN=}")
+client.run(TOKEN)
