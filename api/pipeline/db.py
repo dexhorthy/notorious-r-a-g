@@ -88,7 +88,7 @@ class AgentStateManager:
 
     def final_state(self) -> FinalState | None:
         if self.__data.state == "cancelled":
-            return "sorry, I couldn't get an answer"
+            return "sorry, I couldn't get an answer. Tagging for help <@99252724855496704>!"
         return self.__data.final_state
 
     def id(self) -> str:
