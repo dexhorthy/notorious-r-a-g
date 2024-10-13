@@ -71,6 +71,7 @@ def main():
                     "metadata": {
                         "type": "discord_thread",
                         "text": json.dumps(thread),
+                        "channel_id": channel_id,
                         "thread_id": thread["thread_id"],
                         "thread_name": thread.get("thread name", ""),
                     },
