@@ -1,13 +1,32 @@
+#!/usr/bin/env python3
+
+"""Script to dump threads of a discord channel to a json file
+
+Sample commands:
+$ python3 ./discord_json/discord_threads.py --channel-id 1253172394345107466
+$ python3 ./discord_json/discord_threads.py --channel-id 1253172325205934181
+$ python3 ./discord_json/discord_threads.py --channel-id 1119375594984050779
+
+"""
+from pathlib import Path
 import discord
 import json
 import os
 from dotenv import load_dotenv
 from collections import defaultdict
+import argparse
 
 load_dotenv()
 
-TOKEN = os.getenv("DISCORD_BOT_TOKEN", "FAKE_TOKEN")
-CHANNEL_ID = 1253172394345107466  # Questions channel on BAML
+parser = argparse.ArgumentParser()
+
+# BAML discord channels:
+# questions: 1253172394345107466 (default)
+# troubleshooting: 1253172325205934181
+# general: 1119375594984050779
+parser.add_argument('--channel-id', type=str, help='Discord channel ID', default=1253172394345107466)
+
+args = parser.parse_args()
 
 client = discord.Client(intents=discord.Intents.default())
 
@@ -85,13 +104,14 @@ async def process_message(message, thread_id=None, thread_name=None):
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
-    channel = client.get_channel(CHANNEL_ID)
-    if channel:
-        messages = await fetch_messages(channel)
-        with open("thread_messages.json", "w", encoding="utf-8") as f:
-            json.dump(messages, f, ensure_ascii=False, indent=4)
-        print(f"Saved {len(messages)} messages to thread_messages.json")
+    channel = client.get_channel(args.channel_id)
+    assert channel, f"Did you add the Discord bot to {args.channel_id=}"
+
+    messages = await fetch_messages(channel)
+    filename = Path(__file__).parent / f"thread_messages_{args.channel_id}.json"
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(messages, f, ensure_ascii=False, indent=4)
+    print(f"Saved {len(messages)} messages to {filename}")
     await client.close()
 
-
-client.run(TOKEN)
+client.run(os.getenv("DISCORD_BOT_TOKEN", "FAKE_TOKEN"))
