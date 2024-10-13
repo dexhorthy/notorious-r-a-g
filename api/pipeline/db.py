@@ -3,16 +3,19 @@ from pydantic import BaseModel
 from typing import List, Literal, Optional
 from firebase_admin import firestore, initialize_app
 from models import Message
+
 initialize_app()
 
 
-StateName = Literal['running', 'completed', 'failed', 'cancelled']
+StateName = Literal["running", "completed", "failed", "cancelled"]
 InitialState = List[Message]
 FinalState = str
+
 
 class Action(BaseModel):
     type: str
     content: str
+
 
 class AgentState(BaseModel):
     state: StateName
@@ -23,19 +26,21 @@ class AgentState(BaseModel):
     @staticmethod
     def create(start: InitialState):
         return AgentState(
-            state='running',
-            initial_state=start,
-            actions=[],
-            final_state=None
+            state="running", initial_state=start, actions=[], final_state=None
         )
 
+
 COLLECTION = "agentstate"
+
 
 class AgentStateManager:
     """
     Manages saving agent states to Firestore with each incremental update.
     """
-    def __init__(self, doc_ref: firestore.firestore.DocumentReference, action: AgentState):
+
+    def __init__(
+        self, doc_ref: firestore.firestore.DocumentReference, action: AgentState
+    ):
         self.__doc_ref = doc_ref
         self.__data = action
 
@@ -61,6 +66,9 @@ class AgentStateManager:
         else:
             raise ValueError(f"Id {id} does not exist")
 
+    def final_state(self) -> FinalState | None:
+        return self.__data.final_state
+
     def id(self) -> str:
         return self.__doc_ref.id
 
@@ -69,10 +77,10 @@ class AgentStateManager:
         self.__doc_ref.set(self.__data.model_dump())
 
     def cancel(self):
-        self.__data.state = 'cancelled'
+        self.__data.state = "cancelled"
         self.__doc_ref.set(self.__data.model_dump())
 
     def complete(self, final_state: FinalState):
-        self.__data.state = 'completed'
+        self.__data.state = "completed"
         self.__data.final_state = final_state
         self.__doc_ref.set(self.__data.model_dump())
