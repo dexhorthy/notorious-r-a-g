@@ -4,21 +4,21 @@ import { collection, onSnapshot, query } from "firebase/firestore"
 
 import { db } from "../firebase"
 
-type Message = {
-  user: string
+export type Message = {
+  user_id: string
   message: string
 }
 export type StateName = "running" | "completed" | "failed" | "cancelled" | "paused"
-type InitialState = Message[]
-type FinalState = string | null
+export type InitialState = Message[]
+export type FinalState = string | null
 
-interface Action {
+export interface Action {
   type: string
   content: string
   create_time_ms: number
 }
 
-interface AgentState {
+export interface AgentState {
   create_time_ms: Date
   update_time_ms: Date
   state: StateName

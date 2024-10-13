@@ -3,16 +3,28 @@ import { DBRecord, StateName, useFirebaseListener, Action } from "@/hooks/fireba
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@radix-ui/react-accordion";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, Database, MessageSquare, UserCheck, CheckCircle, Wrench } from 'lucide-react';
 import { formatDistanceToNow, formatDuration, subHours } from 'date-fns';
+import ReactMarkdown from "react-markdown";
 
 const actionColors = {
-  default: 'bg-gray-100 text-gray-800',
-  RAGQuery: 'bg-blue-100 text-blue-800',
-  RAGResult: 'bg-blue-100 text-blue-800',
-  RespondToUser: 'bg-green-100 text-green-800',
-  HumanApproval: 'bg-yellow-100 text-yellow-800',
-  // Add more action types and colors as needed
+  default: { class: 'bg-gray-100 text-gray-800', icon: ChevronDown },
+  RAGQuery: {
+    class: 'bg-blue-100 text-blue-800',
+    icon: Wrench
+  },
+  RAGResult: { class: 'bg-blue-100 text-blue-800', icon: () => (
+      <img
+        src="https://yepcode.io/docs/img/integrations/icons/pinecone.svg"
+        alt="Pinecone Logo"
+        className="w-8 h-8"
+      />
+    ) },
+
+  RespondToUser: { class: 'bg-green-100 text-green-800', icon: MessageSquare },
+  HumanApproval: { class: 'bg-yellow-100 text-yellow-800', icon: UserCheck },
+  "Finalizing Answer": { class: 'bg-purple-100 text-purple-800', icon: CheckCircle },
+  // Add more action types, classes, and icons as needed
 };
 
 function PSTDate(ms: number) {
@@ -37,39 +49,45 @@ function ActionBubble({ action, startDate }: { action: Action, startDate: Date }
     ? action.content.slice(0, maxLength) + '...'
     : action.content;
 
-  const bubbleColor = actionColors[action.type as keyof typeof actionColors] || actionColors.default;
+  const actionConfig = actionColors[action.type as keyof typeof actionColors] || actionColors.default;
+  const Icon = actionConfig.icon;
 
   return (
-    <div className={`rounded-lg p-3 mb-2 ${bubbleColor}`}>
-      <div className="flex justify-between items-center mb-1">
-        <span className="font-medium">{action.type}</span>
-        <span className="text-xs text-gray-600 ml-2">
-          +{((action.create_time_ms - startDate.getTime()) / 1000).toFixed(2)}s
-        </span>
+    <div className={`rounded-lg flex flex-row gap-2 items-center p-3 mb-2 ${actionConfig.class}`}>
+      <Icon className="w-8 h-8" />
+      <div className="flex flex-col  w-full justify-between">
+        <div className="flex justify-between items-center mb-1">
+          <span className="font-medium flex items-center">
+            {action.type}
+          </span>
+          <span className="text-xs text-gray-600 ml-2">
+            +{((action.create_time_ms - startDate.getTime()) / 1000).toFixed(2)}s
+          </span>
+        </div>
 
+
+        <p className="text-sm">
+          <ReactMarkdown>{isExpanded ? action.content : truncatedContent}</ReactMarkdown>
+        </p>
+        {action.content.length > maxLength && (
+          <button
+            onClick={toggleExpand}
+            className="flex items-center text-blue-500 hover:text-blue-700 mt-1 text-xs"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-3 h-3 mr-1" />
+                Show less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-3 h-3 mr-1" />
+                Show more
+              </>
+            )}
+          </button>
+        )}
       </div>
-
-      <p className="text-sm">
-        {isExpanded ? action.content : truncatedContent}
-      </p>
-      {action.content.length > maxLength && (
-        <button
-          onClick={toggleExpand}
-          className="flex items-center text-blue-500 hover:text-blue-700 mt-1 text-xs"
-        >
-          {isExpanded ? (
-            <>
-              <ChevronUp className="w-3 h-3 mr-1" />
-              Show less
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-3 h-3 mr-1" />
-              Show more
-            </>
-          )}
-        </button>
-      )}
     </div>
   );
 }
@@ -90,11 +108,11 @@ export default function Page({ agentId }: { agentId?: string }) {
 function Component({ records }: { records: DBRecord[] }) {
   // Constants
   const stateColors: Record<StateName, string> = {
-    running: 'bg-blue-500',
+    running: 'bg-gray-500',
     completed: 'bg-green-500',
     failed: 'bg-red-500',
-    cancelled: 'bg-yellow-500',
-    paused: 'bg-gray-500',
+    cancelled: 'bg-orange-500',
+    paused: 'bg-yellow-500',
   }
 
   function TruncatedContent({ content }: { content: string }) {
@@ -137,35 +155,63 @@ function Component({ records }: { records: DBRecord[] }) {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">DB Record Viewer</h1>
-      <ScrollArea className="h-[600px] w-full rounded-md border p-4">
-        <Accordion type="single" collapsible className="w-full" defaultValue={records.length === 1 ? records[0].id : undefined}>
+      <ScrollArea className="h-[600px] w-full rounded-md p-4">
+        <Accordion type="single" collapsible className="w-full flex flex-col flex-col-reverse" defaultValue={records.length === 1 ? records[0].id : undefined}>
           {records.map((record) => (
             <AccordionItem value={record.id} key={record.id}>
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium">Record ID: {record.id}</span>
-                  <Badge className={`${stateColors[record.data?.state ?? 'running']} text-white`}>
-                    {record.data?.state ?? 'Unknown'}
-                  </Badge>
+              <AccordionTrigger className="w-full hover:no-underline border border-gray-200 rounded-lg mb-2">
+                <div className="flex items-center justify-between w-full p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <div className="flex flex-col items-start flex-grow">
+                    <div className="flex items-center">
+                      <span className="text-lg font-semibold mb-2 text-left">{record.data?.initial_state?.[0]?.message || 'No question'}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 text-left">
+                      <span>{PSTDateRelative(record.data.create_time_ms.getTime())}</span>
+                      <span>•</span>
+                      <span>{record.data?.actions?.length || 0} steps</span>
+                    </div>
+                    {record.data?.final_state && (
+                      <div className="mt-2 text-sm text-gray-700 max-w-md overflow-hidden">
+                        <span className="truncate inline-block max-w-full">
+                          {record.data.final_state}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-4 flex-shrink-0">
+                    <div className="flex space-x-2">
+                      {record.data?.actions?.slice(0, 3).map((action, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {action.type}
+                        </Badge>
+                      ))}
+                      {record.data?.actions?.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{record.data.actions.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                    <Badge className={`${stateColors[record.data?.state ?? 'running']} text-white`}>
+                      {record.data?.state ?? 'Unknown'}
+                    </Badge>
+                  </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 pl-4">
                   <div>
-                    <h4 className="text-sm font-semibold">Initial State:</h4>
-                    <ul className="list-inside list-disc space-y-1">
+                    <h4 className="text-sm font-semibold mb-2">Initial State:</h4>
+                    <div className="space-y-2 border-l-2 border-gray-200 pl-3">
                       {record.data?.initial_state?.map((message, index) => (
-                        <li key={index} className="text-sm">
-                          <span className="font-medium">{message.user}:</span> {message.message}
-                          <span className="text-xs text-gray-500 ml-2">
-                            {PSTDateRelative(record.data.create_time_ms.getTime())}
-                          </span>
-                          <span className="text-xs text-gray-500 ml-2">
-                            ({formatDuration({ seconds: record.data.create_time_ms.getTime() / 1000 - (record.data.state !== 'running' ? record.data.update_time_ms.getTime() : Date.now() / 1000) })})
-                          </span>
-                        </li>
-                      )) ?? <li className="text-sm">No initial state</li>}
-                    </ul>
+                        <div key={index} className="bg-gray-100 rounded-lg p-2">
+                          <p className="text-sm">{message.message}</p>
+                        </div>
+                      )) ?? (
+                          <div className="bg-gray-100 rounded-lg p-2">
+                            <p className="text-sm">No initial state</p>
+                          </div>
+                        )}
+                    </div>
                   </div>
                   <div>
                     <h4 className="text-sm font-semibold">Actions:</h4>
