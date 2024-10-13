@@ -1,13 +1,10 @@
 from contextlib import asynccontextmanager
-import os
-from discord_thread import launch_discord_listener
 from pipeline.pipeline_steps import run_pipeline
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pipeline.db import AgentStateManager
+from pipeline.db import AgentStateManager, FinalState
 from pydantic import BaseModel
 from typing import List
-import socketio
 import uvicorn
 from models import Message
 
@@ -40,27 +37,21 @@ app.add_middleware(
 )
 
 
-
 @app.post("/agent")
-async def start_agent(messages: str | List[Message], background_tasks: BackgroundTasks) -> str:
+async def start_agent(
+    messages: str | List[Message], background_tasks: BackgroundTasks
+) -> dict[str, str]:
     if isinstance(messages, str):
         messages = [Message(user_id="web_app", message=messages)]
     state = AgentStateManager.create(messages)
     background_tasks.add_task(run_pipeline, state, messages)
-    return state.id()
+    return {"id": state.id()}
 
 
-# @app.get("/questions", response_model=List[Question])
-# async def read_questions():
-#     return questions
-
-
-# @app.get("/questions/{question_id}", response_model=Question)
-# async def read_question(question_id: int):
-#     for question in questions:
-#         if question.id == question_id:
-#             return question
-#     return {"error": "Question not found"}
+@app.get("/agent/{agent_id}")
+async def read_agent(agent_id: str) -> FinalState | None:
+    state = AgentStateManager.from_id(agent_id)
+    return state.final_state()
 
 
 # Socket.IO event handlers
