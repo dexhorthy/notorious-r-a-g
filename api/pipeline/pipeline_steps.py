@@ -11,7 +11,7 @@ from baml_client.async_client import b
 from baml_client.types import Context, FinalAnswer
 from models import Message
 
-from humanlayer import HumanLayer, ContactChannel, SlackContactChannel
+from humanlayer import HumanLayer, ContactChannel, ResponseOption, SlackContactChannel
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def submit_answer_wrapper(question: str, answer: str) -> tuple[str, str] | str:
     return submit_answer(question=question, answer=answer)
 
 
-@hl.require_approval()
+@hl.require_approval(reject_options=[ResponseOption(name="request_changes", title="Request Changes"), ResponseOption(name="take_over", title="I'll Take Over", prompt_fill="MY_EXIT_PROMPT")])
 def submit_answer(*, question: str, answer: str) -> tuple[str, str] | str:
     return "done", answer
 
@@ -64,6 +64,8 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
                 sio.add_action(type="Finalizing Answer", content=res[1])
                 return res[1]
             else:
+                if "MY_EXIT_PROMPT" in res:
+                    raise Exception("Human took over")
                 sio.add_action(type="Incorporating Feedback", content=res)
                 context.append(Context(intent="Draft Answer", context=resp.answer))
                 context.append(Context(intent="Feedback from admin", context=res))
