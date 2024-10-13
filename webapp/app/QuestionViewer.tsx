@@ -163,7 +163,18 @@ function Component({ records }: { records: DBRecord[] }) {
                 <div className="flex items-center justify-between w-full p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                   <div className="flex flex-col items-start flex-grow">
                     <div className="flex items-center">
-                      <span className="text-lg font-semibold mb-2 text-left">{record.data?.initial_state?.[0]?.message || 'No question'}</span>
+                      <div className="flex items-center">
+                        {record.data?.initial_state?.[0]?.avatar_url && (
+                          <img
+                            src={record.data.initial_state[0].avatar_url}
+                            alt="User Avatar"
+                            className="w-8 h-8 rounded-full mr-2"
+                          />
+                        )}
+                        <span className="text-lg font-semibold mb-2 text-left">
+                          {record.data?.initial_state?.[0]?.message || 'No question'}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-600 text-left">
                       <span>{PSTDateRelative(record.data.create_time_ms.getTime())}</span>

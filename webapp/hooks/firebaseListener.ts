@@ -6,6 +6,7 @@ import { db } from "../firebase"
 
 export type Message = {
   user_id: string
+  avatar_url?: string
   message: string
 }
 export type StateName = "running" | "completed" | "failed" | "cancelled" | "paused"
