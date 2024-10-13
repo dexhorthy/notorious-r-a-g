@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
 from pydantic import BaseModel
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Tuple
 from firebase_admin import firestore, initialize_app
 from baml_client.types import Classification
 from models import Message
@@ -19,7 +19,7 @@ class InitialState(BaseModel):
 
 class Action(BaseModel):
     type: str
-    content: str
+    content: "str | RagResult"
     create_time_ms: Optional[int] = None
 
 
@@ -43,6 +43,12 @@ class AgentState(BaseModel):
             update_time_ms=now,
         )
 
+class RagItem(BaseModel):
+    content: str
+    metadata: Dict[str, Any]
+
+class RagResult(BaseModel):
+    result: List[RagItem]
 
 COLLECTION = "agentstate"
 
@@ -88,7 +94,7 @@ class AgentStateManager:
     def id(self) -> str:
         return self.__doc_ref.id
 
-    def add_action(self, *, type: str, content: str):
+    def add_action(self, *, type: str, content: str | RagResult):
         if type == "HumanApproval":
             self.__data.state = "paused"
         else:

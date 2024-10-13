@@ -1,4 +1,12 @@
-import copy
+"""Script to compute embeddings of threads and ingesting them into a Pinecone index
+
+Sample commands:
+$ python3 ./api/ingest_threads.py --channel-id 1253172394345107466  # questions
+$ python3 ./api/ingest_threads.py --channel-id 1253172325205934181  # troubleshooting
+$ python3 ./api/ingest_threads.py --channel-id 1119375594984050779  # general
+"""
+
+import argparse
 import time
 from dotenv import load_dotenv
 from pinecone import ServerlessSpec, Pinecone
@@ -44,8 +52,19 @@ def get_embedding(messages, client, model="text-embedding-ada-002"):
 
 def main():
     load_dotenv()
+    parser = argparse.ArgumentParser()
 
-    with open("discord_json/thread_messages.json", "r") as file:
+    # BAML discord channels:
+    # questions: 1253172394345107466 (default)
+    # troubleshooting: 1253172325205934181
+    # general: 1119375594984050779
+    parser.add_argument(
+        "--channel-id", type=int, help="Discord channel ID", default=1253172394345107466
+    )
+
+    args = parser.parse_args()
+
+    with open(f"discord_json/thread_messages_{args.channel_id}.json", "r") as file:
         threads = json.load(file)
 
     assert threads, "threads is empty!"
@@ -56,6 +75,7 @@ def main():
 
     # Chunk 100 messages into one embedding
     message_count = 100
+    print(f"Computing embeddings for {len(threads)} threads")
     for thread in tqdm(threads):
 
         if not thread["thread_id"]:
@@ -66,19 +86,19 @@ def main():
 
             data.append(
                 {
-                    "id": str(thread["thread_id"]),
+                    "id": str(thread["thread_id"]),  # TODO: change to "channel_id/thread_id"
                     "values": get_embedding(messages, client),
                     "metadata": {
                         "type": "discord_thread",
                         "text": json.dumps(thread),
-                        "channel_id": channel_id,
-                        "thread_id": thread["thread_id"],
-                        "thread_name": thread.get("thread name", ""),
+                        "channel_id": str(args.channel_id),
+                        "thread_id": str(thread["thread_id"]),
+                        "thread_name": str(thread.get("thread_name", "")),
                     },
                 }
             )
 
-    index = get_index("baml")
+    index = get_index("baml2")
     index.upsert(vectors=data)
     print("Success! Updated index")
 

@@ -19,9 +19,16 @@ export type InitialState = Message[] | {
 }
 export type FinalState = string | null
 
+export type RagResult = {
+  result: {
+    content: string
+    metadata: Record<string, any>
+  }[]
+}
+
 export interface Action {
   type: string
-  content: string
+  content: string | RagResult
   create_time_ms: number
 }
 

@@ -1,4 +1,13 @@
+from typing import Dict, List, Tuple, cast
+from llama_index.core.vector_stores import (
+    MetadataFilter,
+    MetadataFilters,
+    FilterOperator,
+)
+from llama_index.core.schema import NodeWithScore
 from openai import OpenAI
+from baml_client.types import Source
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -69,29 +78,40 @@ def retrieve(index_name: str, query: str) -> str:
 
     return prompt
 
-def retrieve_llamaindex(index_name: str, query: str) -> str:
+def filter_to_str(filter_to: Source) -> str:
+    if filter_to == Source.Documentation:
+        return "docs"
+    elif filter_to == Source.Discord:
+        return "discord_thread"
+    raise ValueError(f"Unknown source: {filter_to}")
+        
+    
+
+def retrieve_llamaindex(index_name: str, query: str, filter_to: List[Source]) -> List[Tuple[str, Dict[str, str]]]:
     from llama_index.core import VectorStoreIndex
     from llama_index.vector_stores.pinecone import PineconeVectorStore
 
-    vector_store = PineconeVectorStore(index_name="baml")
+    vector_store = PineconeVectorStore(index_name=index_name)
     from llama_index.embeddings.openai import OpenAIEmbedding
     embed_model = OpenAIEmbedding(model="text-embedding-ada-002")
     index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
-    retriever = index.as_retriever(similarity_top_k=3)
-    top_results = retriever.retrieve("how to handle enums?")
-    contexts = [top_results.node.get_content() for result in top_results]
-    # build our prompt with the retrieved contexts included
-    prompt_start = ""
-    prompt_end = ""
-    prompt = ""
-    # append contexts until hitting limit
-    for i in range(1, len(contexts)):
-        if len("\n\n---\n\n".join(contexts[:i])) >= limit:
-            prompt = prompt_start + "\n\n---\n\n".join(contexts[: i - 1]) + prompt_end
-            break
-        elif i == len(contexts) - 1:
-            prompt = prompt_start + "\n\n---\n\n".join(contexts) + prompt_end
-    return prompt
+    if len(filter_to) == 0 or len(filter_to) == len(Source):
+        filters = None
+    else:
+        filters = MetadataFilters(
+            filters=[
+                MetadataFilter(
+                    key="type", operator=FilterOperator.IN, value=[filter_to_str(x) for x in filter_to]
+                ),
+            ]
+        )
+
+    retriever = index.as_retriever(similarity_top_k=5, filters=filters)
+    top_results: List[NodeWithScore] = retriever.retrieve(query)
+    for result in top_results:
+        print(result.node.get_content())
+    contexts = [(result.node.get_content(), cast(Dict[str, str], result.node.metadata)) for result in top_results]
+    return contexts
 
 def query(index_name: str, prompt: str) -> str:
     prompt = retrieve(index_name, prompt)
