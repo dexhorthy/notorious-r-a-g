@@ -60,11 +60,6 @@ export default function Question() {
       >
         {status === 'loading' ? 'Submitting...' : 'Submit'}
       </Button>
-      {status === 'success' && (
-        <Alert>
-          <AlertDescription>Question submitted successfully!</AlertDescription>
-        </Alert>
-      )}
       {status === 'error' && (
         <Alert variant="destructive">
           <AlertDescription>{errorMessage}</AlertDescription>
