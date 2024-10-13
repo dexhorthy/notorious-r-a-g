@@ -115,6 +115,10 @@ export default function Page({ agentId }: { agentId?: string }) {
 }
 
 function Component({ records }: { records: DBRecord[] }) {
+  const [_selectedRecord, setSelectedRecord] = useState<DBRecord | null>(null);
+
+  const selectedRecord = _selectedRecord ?? records.at(-1);
+
   // Constants
   const stateColors: Record<StateName, string> = {
     running: 'bg-gray-500',
@@ -124,120 +128,76 @@ function Component({ records }: { records: DBRecord[] }) {
     paused: 'bg-yellow-500',
   }
 
-  function TruncatedContent({ content }: { content: string }) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const maxLength = 200; // Adjust this value as needed
-
-    const toggleExpand = () => setIsExpanded(!isExpanded);
-
-    const truncatedContent = content.length > maxLength
-      ? content.slice(0, maxLength) + '...'
-      : content;
-
-    return (
-      <div>
-        <p className="text-sm">
-          {isExpanded ? content : truncatedContent}
-        </p>
-        {content.length > maxLength && (
-          <button
-            onClick={toggleExpand}
-            className="flex items-center text-blue-500 hover:text-blue-700 mt-1"
-          >
-            {isExpanded ? (
-              <>
-                <ChevronUp className="w-4 h-4 mr-1" />
-                Show less
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-4 h-4 mr-1" />
-                Show more
-              </>
-            )}
-          </button>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">DB Record Viewer</h1>
-      <ScrollArea className="h-[600px] w-full rounded-md p-4">
-        <Accordion type="single" collapsible className="w-full flex flex-col flex-col-reverse gap-4" defaultValue={records.length === 1 ? records[0].id : undefined}>
+    <div className="flex h-[600px] space-x-4">
+      <div className="w-1/3 overflow-y-auto border-r pr-4">
+        <h2 className="text-xl font-bold mb-4">Questions</h2>
+        <div className="flex flex-col-reverse">
           {records.map((record) => {
             const lastAction = record.data?.actions?.[record.data.actions.length - 1];
             const lastActionType = lastAction?.type || 'No actions';
-            
+
             return (
-              <AccordionItem value={record.id} key={record.id}>
-                <AccordionTrigger className="w-full hover:no-underline border border-gray-200 rounded-lg mb-2">
-                  <div className="flex items-center justify-between w-full p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <div className="flex flex-col items-start flex-grow">
-                      <div className="flex items-center">
-                        <span className="text-lg font-semibold mb-2 text-left">{record.data?.initial_state?.[0]?.message || 'No question'}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600 text-left">
-                        <span>{PSTDateRelative(record.data.create_time_ms.getTime())}</span>
-                        <span>•</span>
-                        <span>{record.data?.actions?.length || 0} steps</span>
-                      </div>
-                      {record.data?.final_state && (
-                        <div className="mt-2 text-sm text-gray-700 max-w-md overflow-hidden">
-                          <span className="truncate inline-block max-w-full">
-                            {record.data.final_state}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2 flex-shrink-0">
-                      <Badge className="bg-gray-200 text-gray-800 text-xs px-2 py-1">
-                        {lastActionType}
-                      </Badge>
+              <div
+                key={record.id}
+                className={`cursor-pointer p-4 mb-2 rounded-lg ${selectedRecord?.id === record.id ? 'bg-blue-100' : 'bg-white'} hover:bg-blue-50`}
+                onClick={() => setSelectedRecord(record)}
+              >
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold mb-1 truncate">{record.data?.initial_state?.[0]?.message || 'No question'}</span>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>{PSTDateRelative(record.data.create_time_ms.getTime())}</span>
+                    <div className="flex items-center space-x-2">
                       <Badge className={`${stateColors[record.data?.state ?? 'running']} text-white`}>
                         {record.data?.state ?? 'Unknown'}
                       </Badge>
                     </div>
                   </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4 pl-4">
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2">Initial State:</h4>
-                      <div className="space-y-2 border-l-2 border-gray-200 pl-3">
-                        {record.data?.initial_state?.map((message, index) => (
-                          <div key={index} className="bg-gray-100 rounded-lg p-2">
-                            <p className="text-sm">{message.message}</p>
-                          </div>
-                        )) ?? (
-                            <div className="bg-gray-100 rounded-lg p-2">
-                              <p className="text-sm">No initial state</p>
-                            </div>
-                          )}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold">Actions:</h4>
-                      <div className="space-y-2">
-                        {record.data?.actions?.map((action, index) => (
-                          <ActionBubble key={index} action={action} startDate={record.data.create_time_ms} />
-                        )) ?? <p className="text-sm">No actions</p>}
-                      </div>
-                    </div>
-                    {record.data?.state === 'cancelled' && (
-                      <div>
-                        <h4 className="text-sm font-semibold">Final State:</h4>
-                        <p className="text-sm">{record.data?.final_state ?? 'N/A'}</p>
-                      </div>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                </div>
+              </div>
             );
           })}
-        </Accordion>
-      </ScrollArea>
+        </div>
+      </div>
+      <div className="w-2/3 overflow-y-auto">
+        {selectedRecord ? (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">{selectedRecord.data?.initial_state?.[0]?.message || 'No question'}</h2>
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Initial State:</h4>
+              <div className="space-y-2 border-l-2 border-gray-200 pl-3">
+                {selectedRecord.data?.initial_state?.map((message, index) => (
+                  <div key={index} className="bg-gray-100 rounded-lg p-2">
+                    <p className="text-sm">{message.message}</p>
+                  </div>
+                )) ?? (
+                    <div className="bg-gray-100 rounded-lg p-2">
+                      <p className="text-sm">No initial state</p>
+                    </div>
+                  )}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold">Actions:</h4>
+              <div className="space-y-2">
+                {selectedRecord.data?.actions?.map((action, index) => (
+                  <ActionBubble key={index} action={action} startDate={selectedRecord.data.create_time_ms} />
+                )) ?? <p className="text-sm">No actions</p>}
+              </div>
+            </div>
+            {selectedRecord.data?.state === 'cancelled' && (
+              <div>
+                <h4 className="text-sm font-semibold">Final State:</h4>
+                <p className="text-sm">{selectedRecord.data?.final_state ?? 'N/A'}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            Select a question from the list to view details
+          </div>
+        )}
+      </div>
     </div>
   )
 }
