@@ -1,3 +1,4 @@
+import asyncio
 import os
 import aiohttp
 import discord
@@ -24,8 +25,10 @@ async def on_message(message: discord.Message):
         return
 
     if (
-        message.channel.id not in [1294545886281469972]
-    ) and message.channel.parent and message.channel.parent.id not in [1294545886281469972]:
+        (message.channel.id not in [1294545886281469972])
+        and message.channel.parent
+        and message.channel.parent.id not in [1294545886281469972]
+    ):
         return
 
     if not message.content.startswith("$help"):
@@ -37,12 +40,16 @@ async def on_message(message: discord.Message):
         # Get the entire conversation history of the thread
         messages = []
         async for msg in thread.history(limit=None):
-            messages.append(Message(
-                user_id=str(msg.author.id),
-                message=msg.content,
-                name="assistant" if msg.author.id == 1294750513795174450 else msg.author.name
-            ).model_dump())
-        
+            messages.append(
+                Message(
+                    user_id=str(msg.author.id),
+                    message=msg.content,
+                    name="assistant"
+                    if msg.author.id == 1294750513795174450
+                    else msg.author.name,
+                ).model_dump()
+            )
+
         # Reverse the list to get messages in chronological order
         messages.reverse()
 
@@ -77,8 +84,9 @@ async def on_message(message: discord.Message):
                 f"{os.getenv('API_URL', 'http://localhost:8080')}/agent",
                 json=[
                     Message(
-                        user_id=str(message.author.id), message=message.content,
-                        avatar_url=message.author.display_avatar.url
+                        user_id=str(message.author.id),
+                        message=message.content,
+                        avatar_url=message.author.display_avatar.url,
                     ).model_dump()
                 ],
             ) as response:
@@ -88,6 +96,7 @@ async def on_message(message: discord.Message):
 
         async with thread.typing():
             while True:
+                await asyncio.sleep(1)
                 async with aiohttp.ClientSession() as session:
                     async with session.get(
                         f"{os.getenv('API_URL', 'http://localhost:8080')}/agent/{agent_id}"  # noqa: F821

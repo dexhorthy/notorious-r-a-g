@@ -45,7 +45,6 @@ async def get_human_approval(question: str, answer: str) -> str | tuple[str, str
     return res
 
 
-
 async def formulate_response(sio: AgentStateManager, question: str) -> str:
     sio.add_action(type="formulate_response", content="Formulating response")
 
@@ -115,9 +114,5 @@ async def run_pipeline(sio: AgentStateManager, questions: List[Message]):
     except Exception as e:
         sio.cancel(message=str(e))
         return
-
-    for s in states:
-        sio.add_action(type=s.__name__, content=f"Result from {s.__name__}")
-        await asyncio.sleep(random.randint(1, 3))
 
     sio.complete(initial_draft)
