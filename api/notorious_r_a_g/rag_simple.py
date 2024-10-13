@@ -13,12 +13,12 @@ from dotenv import load_dotenv
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 from phoenix.otel import register
 
-tracer_provider = register(
-  project_name="notorious-RAG", # Default is 'default'
-  endpoint="http://localhost:6006/v1/traces",
-)
+# tracer_provider = register(
+#   project_name="notorious-RAG", # Default is 'default'
+#   endpoint="http://localhost:6006/v1/traces",
+# )
 
-LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
+# LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
 
 
 load_dotenv()
@@ -91,7 +91,7 @@ def retrieve(index_name: str, query: str) -> str:
 
 def filter_to_str(filter_to: Source) -> str:
     if filter_to == Source.Documentation:
-        return "docs"
+        return "docs2"
     elif filter_to == Source.Discord:
         return "discord_thread"
     raise ValueError(f"Unknown source: {filter_to}")
@@ -107,7 +107,13 @@ def retrieve_llamaindex(index_name: str, query: str, filter_to: List[Source]) ->
     embed_model = OpenAIEmbedding(model="text-embedding-ada-002")
     index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
     if len(filter_to) == 0 or len(filter_to) == len(Source):
-        filters = None
+        filters = MetadataFilters(
+            filters=[
+                MetadataFilter(
+                    key="type", operator=FilterOperator.NE, value="docs"
+                ),
+            ]
+        )
     else:
         filters = MetadataFilters(
             filters=[
