@@ -1,35 +1,84 @@
-import re
-
 def merge_and_replace_code_tables(text):
-    def merge_code(match):
-        # Extract the content between the backticks
-        code_block = match.group(1)
-        lines = code_block.strip('\n').split('\n')
+    lines = text.split('\n')
+    output_lines = []
+    in_code_block = False
+    code_block_lines = []
+    is_table_code_block = False
 
-        # Check if the code block is a table (contains lines starting with '|')
-        if all('|' in line for line in lines if line.strip()):
-            # Process lines that are part of the table
-            code_lines = []
-            for line in lines:
-                if '|' in line:
-                    parts = line.split('|')
-                    if len(parts) > 2:
-                        # Get the code part from the third column (index 2)
-                        part: str = parts[2]
+    for line in lines:
+        stripped_line = line.strip()
+        start_code_block = stripped_line == '` | | | | --- | --- |'
+        end_code_block = stripped_line == '`'
 
-                        code_lines.append(part.rstrip())
-            # Return the merged code block with triple backticks
-            return '```\n' + '\n'.join(code_lines) + '\n```'
+        if in_code_block and end_code_block:
+            in_code_block = False
+            if is_table_code_block:
+                code_lines = []
+                for code_line in code_block_lines:
+                    if '|' in code_line:
+                        parts = code_line.split('|')
+                        if len(parts) > 2:
+                            code_lines.append(parts[2].strip())
+                output_lines.append('```')
+                output_lines.extend(code_lines)
+                output_lines.append('```')
+            else:
+                output_lines.append('```')
+                output_lines.extend(code_block_lines)
+                output_lines.append('```')
+        elif start_code_block:
+            if not in_code_block:
+                # Start of a code block
+                in_code_block = True
+                code_block_lines = []
+                is_table_code_block = False
+            else:
+                # End of a code block
+                in_code_block = False
+                if is_table_code_block:
+                    # Process the code block as a table
+                    code_lines = []
+                    for code_line in code_block_lines:
+                        if '|' in code_line:
+                            parts = code_line.split('|')
+                            if len(parts) > 2:
+                                # Extract the code part (third column)
+                                code_lines.append(parts[2].strip())
+                    # Replace with triple backticks and the code content
+                    output_lines.append('```')
+                    output_lines.extend(code_lines)
+                    output_lines.append('```')
+                else:
+                    # Not a table; replace single backticks with triple backticks
+                    output_lines.append('```')
+                    output_lines.extend(code_block_lines)
+                    output_lines.append('```')
         else:
-            # If not a table, replace single backticks with triple backticks
-            return '```\n' + code_block + '\n```'
+            if in_code_block:
+                code_block_lines.append(line)
+                if '|' in line and line.strip():
+                    is_table_code_block = True
+            else:
+                output_lines.append(line)
 
-    # Pattern to match code blocks inside backticks, non-greedy
-    pattern = r'`(.*?)`'
+    # Handle unclosed code block at the end of the text
+    if in_code_block:
+        if is_table_code_block:
+            code_lines = []
+            for code_line in code_block_lines:
+                if '|' in code_line:
+                    parts = code_line.split('|')
+                    if len(parts) > 2:
+                        code_lines.append(parts[2].strip())
+            output_lines.append('```')
+            output_lines.extend(code_lines)
+            output_lines.append('```')
+        else:
+            output_lines.append('```')
+            output_lines.extend(code_block_lines)
+            output_lines.append('```')
 
-    # Use re.DOTALL to handle multiline code blocks
-    result = re.sub(pattern, merge_code, text, flags=re.DOTALL)
-
+    result = '\n'.join(output_lines)
     return result
 
 if __name__ == '__main__':
