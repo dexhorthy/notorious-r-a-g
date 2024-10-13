@@ -26,8 +26,11 @@ class Context {
 
 template_string PrintContext(context: Context) #"
   {% if context.intent == "RAGQuery" %}
-  Action: RAGQuery
+  Action: {{ context.intent }}
   Response: {{ context.context }}
+  {% else %}
+  {{ context.intent }}:
+  {{ context.context }}
   {% endif %}
 "#
 
