@@ -37,6 +37,15 @@ export default function IndexPage() {
             />
           </div>
         </div>
+        <div className="flex justify-center items-center space-x-4 mt-8">
+          <img src="https://pipedream.com/s.v0/app_z2hxna/logo/orig" alt="llamaindex" width={60} height={60} />
+          <img src="https://avatars.githubusercontent.com/u/54333248?s=200&v=4" alt="pinecone" width={60} height={60} />
+          <img src="https://avatars.githubusercontent.com/u/109101822?s=200&v=4" alt="together ai" width={60} height={60} />
+          <img src="https://avatars.githubusercontent.com/u/14957082?s=200&v=4" alt="openai" width={60} height={60} />
+          <img src="https://awsmp-logos.s3.amazonaws.com/92031815-bcdc-4354-874e-a4ef382c7e0d/204074b2b2aba5c8d13e76adfb3a2b7c.png" alt="arize" width={60} height={60} />
+          <img src="https://avatars.githubusercontent.com/u/124114301?s=200&v=4" alt="baml" width={60} height={60} />
+          <img src="https://avatars.githubusercontent.com/u/177409041?s=200&v=4" alt="humanlayer" width={60} height={60} />
+        </div>
 
         <div className="mt-10">
           <Tabs defaultValue="ask" className="w-full">
