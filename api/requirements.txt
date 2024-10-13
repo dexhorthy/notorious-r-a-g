@@ -1,0 +1,7 @@
+firecrawl-py
+tqdm
+pinecone
+openai
+llama-index
+llama-index-vector-stores-pinecone
+llama-index-embeddings-openai

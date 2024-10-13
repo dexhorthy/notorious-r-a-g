@@ -34,6 +34,30 @@ async def on_message(message):
     if isinstance(message.channel, discord.Thread):
         thread = message.channel
         print(thread.name)
+        # Get the entire conversation history of the thread
+        messages = []
+        async for msg in thread.history(limit=None):
+            messages.append(Message(
+                user_id=str(msg.author.id),
+                message=msg.content,
+                name="assistant" if msg.author.id == 1294750513795174450 else msg.author.name
+            ).model_dump())
+        
+        # Reverse the list to get messages in chronological order
+        messages.reverse()
+
+        print(f"Retrieved {len(messages)} messages from the thread.")
+
+        # Now you can use these messages to send to your API
+        # async with aiohttp.ClientSession() as session:
+        #     async with session.post(
+        #         f"{os.getenv('API_URL', 'http://localhost:8080')}/agent",
+        #         json=messages
+        #     ) as response:
+        #         agent_response = await response.json()
+
+        agent_id = agent_response["id"]
+        # await thread.send(f"Processing your request. Agent ID: {agent_id}")
         # requests.post(
         #     f"{os.getenv('API_URL', 'http://localhost:8080')}/agent",  # noqa: F821
         #     json=[Message("user_id": "discord_bot", "message": message.content) for message in thread]

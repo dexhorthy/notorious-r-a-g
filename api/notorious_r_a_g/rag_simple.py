@@ -58,6 +58,29 @@ def retrieve(index_name: str, query: str) -> str:
             prompt = prompt_start + "\n\n---\n\n".join(contexts) + prompt_end
     return prompt
 
+def retrieve_llamaindex(index_name: str, query: str) -> str:
+    from llama_index.core import VectorStoreIndex
+    from llama_index.vector_stores.pinecone import PineconeVectorStore
+
+    vector_store = PineconeVectorStore(index_name="baml")
+    from llama_index.embeddings.openai import OpenAIEmbedding
+    embed_model = OpenAIEmbedding(model="text-embedding-ada-002")
+    index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+    retriever = index.as_retriever(similarity_top_k=3)
+    top_results = retriever.retrieve("how to handle enums?")
+    contexts = [top_results.node.get_content() for result in top_results]
+    # build our prompt with the retrieved contexts included
+    prompt_start = ""
+    prompt_end = ""
+    prompt = ""
+    # append contexts until hitting limit
+    for i in range(1, len(contexts)):
+        if len("\n\n---\n\n".join(contexts[:i])) >= limit:
+            prompt = prompt_start + "\n\n---\n\n".join(contexts[: i - 1]) + prompt_end
+            break
+        elif i == len(contexts) - 1:
+            prompt = prompt_start + "\n\n---\n\n".join(contexts) + prompt_end
+    return prompt
 
 def query(index_name: str, prompt: str) -> str:
     prompt = retrieve(index_name, prompt)
