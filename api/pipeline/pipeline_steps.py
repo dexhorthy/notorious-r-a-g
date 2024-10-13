@@ -1,7 +1,7 @@
 import asyncio
 from math import exp
 import random
-from typing import List
+from typing import Callable, List
 
 from pipeline.db import AgentStateManager
 from baml_client.async_client import b
@@ -12,10 +12,19 @@ from models import Message
 from humanlayer import HumanLayer, ContactChannel, SlackContactChannel
 
 hl = HumanLayer(
+    verbose=True,
     contact_channel=ContactChannel(
-        slack=SlackContactChannel(channel_or_user_id="", experimental_slack_blocks=True)
-    )
+        slack=SlackContactChannel(
+            channel_or_user_id="C07RMGJRMMY",
+            experimental_slack_blocks=True,
+        )
+    ),
 )
+
+
+async def run_async(func: Callable, *args, **kwargs):  # noqa: F821
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, func, *args, **kwargs)
 
 
 @hl.require_approval()
@@ -32,7 +41,7 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
         resp = await b.FormulateAnswer(question, context)
         if isinstance(resp, FinalAnswer):
             sio.add_action(type="HumanApproval", content=resp.answer)
-            res = submit_answer(question=question, answer=resp.answer)
+            res = await run_async(submit_answer, question=question, answer=resp.answer)
             if isinstance(res, tuple):
                 sio.add_action(type="Finalizing Answer", content=res[1])
                 return res[1]
@@ -47,7 +56,7 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
             )
 
             await asyncio.sleep(random.randint(1, 3))
-            result = retrieve("baml", resp.question)
+            result = await run_async(retrieve, "baml", resp.question)
             context.append(Context(intent="RAGQuery", context=result))
             sio.add_action(type="RAGResult", content=f"Result from RAG: {result}")
 

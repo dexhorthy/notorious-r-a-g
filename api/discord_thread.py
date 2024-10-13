@@ -1,4 +1,5 @@
 import os
+import aiohttp
 import discord
 import requests
 from dotenv import load_dotenv
@@ -46,23 +47,27 @@ async def on_message(message):
         await thread.send("working on it...")
 
         print(message.content)
-        resp = requests.post(
-            f"{os.getenv('API_URL', 'http://localhost:8080')}/agent",  # noqa: F821
-            json=[
-                Message(
-                    user_id=str(message.author.id), message=message.content
-                ).model_dump()
-            ],  # noqa: F821
-        )
 
-        agent_id = resp.json()["id"]
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{os.getenv('API_URL', 'http://localhost:8080')}/agent",
+                json=[
+                    Message(
+                        user_id=str(message.author.id), message=message.content
+                    ).model_dump()
+                ],
+            ) as response:
+                agent_response = await response.json()
+
+        agent_id = agent_response["id"]
 
         await thread.typing()
         while True:
-            response = requests.get(
-                f"{os.getenv('API_URL', 'http://localhost:8080')}/agent/{agent_id}"  # noqa: F821
-            )
-            final_state = response.json()
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{os.getenv('API_URL', 'http://localhost:8080')}/agent/{agent_id}"  # noqa: F821
+                ) as response:
+                    final_state = await response.json()
             if final_state is None:
                 continue
             await thread.send(final_state)
