@@ -10,6 +10,17 @@ from baml_client.types import Source
 
 from dotenv import load_dotenv
 
+from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+from phoenix.otel import register
+
+tracer_provider = register(
+  project_name="notorious-RAG", # Default is 'default'
+  endpoint="http://localhost:6006/v1/traces",
+)
+
+LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
+
+
 load_dotenv()
 client = OpenAI()
 
