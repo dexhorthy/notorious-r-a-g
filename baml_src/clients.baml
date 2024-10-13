@@ -11,6 +11,7 @@ client<llm> CustomGPT4o {
 client<llm> TogetherAI {
   provider "openai-generic"
   options {
+    base_url "https://api.together.ai/v1"
     model "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
     api_key env.TOGETHER_API_KEY
   }
@@ -45,7 +46,7 @@ client<llm> CustomFast {
   provider fallback
   options {
     // This will alternate between the two clients
-    strategy [TogetherAI, GPT4oMini]
+    strategy [TogetherAI, CustomGPT4oMini]
   }
 }
 
