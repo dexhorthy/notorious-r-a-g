@@ -1,4 +1,6 @@
 import asyncio
+import os
+
 from contextlib import asynccontextmanager
 from baml_client.types import QuestionType
 from discord_thread import run_bot
@@ -84,4 +86,4 @@ async def read_agent(agent_id: str) -> FinalState | None:
 
 
 if __name__ == "__main__":
-    uvicorn.run("hello:app", host="0.0.0.0", port=8080, reload=True)
+    uvicorn.run("hello:app", host="0.0.0.0", port=int(os.getenv("PORT", "8080")), reload=True)

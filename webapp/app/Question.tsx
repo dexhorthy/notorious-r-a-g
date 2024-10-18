@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import AgentDashboard from "./AgentDashboard"
 
-const API_URL = "http://localhost:8080"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
 export default function Question() {
   const [question, setQuestion] = useState("")
