@@ -14,6 +14,7 @@ from models import Message
 from humanlayer import (
     FunctionCall,
     FunctionCallSpec,
+    FunctionCallStatus,
     HumanLayer,
     ContactChannel,
     ResponseOption,
@@ -41,6 +42,33 @@ async def run_async(func: Callable, *args):  # noqa: F821
     return await loop.run_in_executor(None, func, *args)
 
 
+async def run_approval(
+    question: str, answer: str
+) -> FunctionCallStatus.Approved | FunctionCallStatus.Rejected:
+    return await run_async(
+        hl.fetch_approval,
+        FunctionCallSpec(
+            fn="submit_answer",
+            kwargs={
+                "question": question,
+                "answer": answer,
+            },
+            channel=humanlayer_channel,
+            reject_options=[
+                ResponseOption(
+                    name="request_changes",
+                    title="Request changes",
+                ),
+                ResponseOption(
+                    name="human_takeover",
+                    title="I'll take over",
+                    prompt_fill="MY_EXIT_PROMPT",
+                ),
+            ],
+        ),
+    )
+
+
 async def formulate_response(sio: AgentStateManager, question: str) -> str:
     sio.add_action(type="formulate_response", content="Formulating response")
 
@@ -55,60 +83,23 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
             sio.add_action(type="ReadyToAnswer", content=resp.reason)
             answer: str = await b.AnswerQuestion(question, context)
             sio.add_action(type="HumanApproval", content=answer)
-            function_call_approval: FunctionCall = await run_async(
-                hl.create,
-                FunctionCallSpec(
-                    fn="submit_answer",
-                    kwargs={
-                        "question": question,
-                        "answer": answer,
-                    },
-                    channel=humanlayer_channel,
-                    reject_options=[
-                        ResponseOption(
-                            name="request_changes",
-                            title="Request changes",
-                        ),
-                        ResponseOption(
-                            name="human_takeover",
-                            title="I'll take over",
-                            prompt_fill="MY_EXIT_PROMPT",
-                        ),
-                    ],
-                ),
-            )
-            while (
-                function_call_approval.status is None
-                or function_call_approval.status.approved is None
-            ):
-                await asyncio.sleep(3)
-                function_call_approval = await run_async(
-                    hl.get, function_call_approval.call_id
-                )
 
-            function_call_approval_result = (  # janky little cast...HL will make this better
-                function_call_approval.status.as_completed()
-            )
+            approval_result = await run_approval(question, answer)
 
-            if function_call_approval_result.approved:
+            if approval_result.approved is True:
                 return answer
             else:
-                assert (
-                    function_call_approval_result.comment is not None
-                ), "rejected request, but no comment. Something is seriously wrong"
-
-                if "MY_EXIT_PROMPT" in function_call_approval_result.comment:
+                if "MY_EXIT_PROMPT" in approval_result.comment:
                     raise Exception("Human took over")
-                print("FEEDBACK: ", function_call_approval_result)
                 sio.add_action(
                     type="Incorporating Feedback",
-                    content=f"Admin denied FinalAnswer with feedback: {function_call_approval_result.comment}",
+                    content=f"Admin denied FinalAnswer with feedback: {approval_result.comment}",
                 )
                 context.append(Context(intent="Draft Answer", context=answer))
                 context.append(
                     Context(
                         intent="Feedback from admin",
-                        context=f"Admin denied FinalAnswer with feedback: {function_call_approval_result.comment}",
+                        context=f"Admin denied FinalAnswer with feedback: {approval_result.comment}",
                     )
                 )
                 # Reset max_steps to 5 after a human gives feedback
