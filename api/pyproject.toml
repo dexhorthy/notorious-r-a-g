@@ -23,5 +23,5 @@ dependencies = [
     "reflex>=0.6.2.post1",
     "html2text>=2024.2.26",
     "markdownify>=0.13.1",
-    "humanlayer==0.5.8rc3",
+    "humanlayer==0.5.8",
 ]
