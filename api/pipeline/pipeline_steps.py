@@ -87,6 +87,7 @@ async def formulate_response(sio: AgentStateManager, question: str) -> str:
             approval_result = await run_approval(question, answer)
 
             if approval_result.approved is True:
+                sio.add_action(type="FinalAnswer", content=answer)
                 return answer
             else:
                 if "MY_EXIT_PROMPT" in approval_result.comment:
@@ -160,4 +161,5 @@ async def run_pipeline(sio: AgentStateManager, questions: List[Message]):
         sio.cancel(message=str(e))
         return
 
+    print("COMPLETING - ", initial_draft)
     sio.complete(initial_draft)
