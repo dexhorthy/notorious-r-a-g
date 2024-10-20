@@ -12,7 +12,6 @@ from baml_client.types import Context, FinalAnswer
 from models import Message
 
 from humanlayer import (
-    FunctionCall,
     FunctionCallSpec,
     FunctionCallStatus,
     HumanLayer,
@@ -45,28 +44,29 @@ async def run_async(func: Callable, *args):  # noqa: F821
 async def run_approval(
     question: str, answer: str
 ) -> FunctionCallStatus.Approved | FunctionCallStatus.Rejected:
-    return await run_async(
-        hl.fetch_approval,
-        FunctionCallSpec(
-            fn="submit_answer",
-            kwargs={
-                "question": question,
-                "answer": answer,
-            },
-            channel=humanlayer_channel,
-            reject_options=[
-                ResponseOption(
-                    name="request_changes",
-                    title="Request changes",
-                ),
-                ResponseOption(
-                    name="human_takeover",
-                    title="I'll take over",
-                    prompt_fill="MY_EXIT_PROMPT",
-                ),
-            ],
-        ),
-    )
+    return (
+        await run_async(
+            hl.fetch_approval,
+            FunctionCallSpec(
+                fn="submit_answer",
+                kwargs={
+                    "question": question,
+                    "answer": answer,
+                },
+                reject_options=[
+                    ResponseOption(
+                        name="request_changes",
+                        title="Request changes",
+                    ),
+                    ResponseOption(
+                        name="human_takeover",
+                        title="I'll take over",
+                        prompt_fill="MY_EXIT_PROMPT",
+                    ),
+                ],
+            ),
+        )
+    ).as_completed()
 
 
 async def formulate_response(sio: AgentStateManager, question: str) -> str:

@@ -11,7 +11,6 @@ dependencies = [
     "discord>=2.3.2",
     "fastapi>=0.115.0",
     "firebase-admin>=6.5.0",
-    "humanlayer==0.5.8rc1",
     "ipython>=8.28.0",
     "llama-index-core>=0.10.43",
     "llama-index-embeddings-mistralai>=0.2.0",

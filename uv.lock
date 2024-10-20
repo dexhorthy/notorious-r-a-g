@@ -177,7 +177,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "firebase-admin", specifier = ">=6.5.0" },
     { name = "html2text", specifier = ">=2024.2.26" },
-    { name = "humanlayer", specifier = "==0.5.8rc1" },
+    { name = "humanlayer", specifier = "==0.5.8rc3" },
     { name = "ipython", specifier = ">=8.28.0" },
     { name = "llama-index", specifier = ">=0.11.17" },
     { name = "llama-index-embeddings-mistralai", specifier = ">=0.2.0" },
@@ -1167,7 +1167,7 @@ inference = [
 
 [[package]]
 name = "humanlayer"
-version = "0.5.8rc1"
+version = "0.5.8rc3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -1176,9 +1176,9 @@ dependencies = [
     { name = "python-slugify" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/28/2a/f740ef06e27ef9449ab656f62a8a61abeee41f44b65bb7afe2f66d23c0ed/humanlayer-0.5.8rc1.tar.gz", hash = "sha256:a74d631f7a0673be35f6b4ab71e1606ae8214d3613c844e9f3a585c26d6e9ea6", size = 19384 }
+sdist = { url = "https://files.pythonhosted.org/packages/cb/ff/6e1556117b5b01a0183680b480fb10bac774971ce39b2c97dbfdedc27728/humanlayer-0.5.8rc3.tar.gz", hash = "sha256:565eec600f76894752c627bd6fb0311d3956abd6765891cd710d4b0c378e2439", size = 19903 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/91/d3/fa48968c65d829a09db77cdca2d2ca27d8a1de9a7d3fcb49643f41bd5cb9/humanlayer-0.5.8rc1-py3-none-any.whl", hash = "sha256:75da9b25468670f46b405b188d01d7b706731a3003dd634dca9b47ff6b8932e7", size = 18144 },
+    { url = "https://files.pythonhosted.org/packages/30/8e/427b4e8c94e7fe330c408bdd53220e047e60f872d7394067249f4958542e/humanlayer-0.5.8rc3-py3-none-any.whl", hash = "sha256:8f3aeb0a3ae9dd35123c180419559e1f3ac7b70f3b65ba3f0f041d24aba1a020", size = 18583 },
 ]
 
 [[package]]
@@ -2182,7 +2182,6 @@ dependencies = [
     { name = "discord" },
     { name = "fastapi" },
     { name = "firebase-admin" },
-    { name = "humanlayer" },
     { name = "ipython" },
     { name = "llama-index" },
     { name = "llama-index-core" },
@@ -2206,7 +2205,6 @@ requires-dist = [
     { name = "discord", specifier = ">=2.3.2" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "firebase-admin", specifier = ">=6.5.0" },
-    { name = "humanlayer", specifier = "==0.5.8rc1" },
     { name = "ipython", specifier = ">=8.28.0" },
     { name = "llama-index", specifier = ">=0.11.17" },
     { name = "llama-index-core", specifier = ">=0.10.43" },

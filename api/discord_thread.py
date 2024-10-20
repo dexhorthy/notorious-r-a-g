@@ -12,6 +12,7 @@ intents.message_content = True
 
 client = discord.Client(intents=intents)
 
+
 @client.event
 async def on_ready():
     print(f"We have logged in as {client.user}")
@@ -68,7 +69,7 @@ async def on_message(message: discord.Message):
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"{os.getenv('API_URL', 'http://localhost:8080')}/agent",
+                f"{os.getenv('API_URL', f'http://localhost:{os.getenv("PORT", "8080")}')}/agent",
                 json=[
                     Message(
                         user_id=str(message.author.id),
@@ -83,9 +84,7 @@ async def on_message(message: discord.Message):
             print(agent_response)
             return
         agent_id = agent_response["id"]
-        thread = await message.create_thread(
-            name=agent_response["title"]
-        )
+        thread = await message.create_thread(name=agent_response["title"])
         msg = await thread.send("working on it...")
         counter = 0
         async with thread.typing():
@@ -99,7 +98,9 @@ async def on_message(message: discord.Message):
                 else:
                     await asyncio.sleep(1)
                     counter += 1
-                    await msg.edit(content=f"Still working on it...: {counter} seconds...")
+                    await msg.edit(
+                        content=f"Still working on it...: {counter} seconds..."
+                    )
 
 
 async def run_bot():
@@ -110,4 +111,3 @@ async def run_bot():
         await client.close()
     except Exception as e:
         print("An error occurred while running the bot.")
-    
